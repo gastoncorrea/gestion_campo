@@ -1,31 +1,30 @@
-<div>
+<div class="tabla-container">
     <h1>Ordenes de trabajo</h1>
-    <pre>{{ ordenes[0] | json }}</pre>
     <table>
         <thead>
             <tr>
-                <th>N° OT</th>
+                <th class="ocultar-en-mobile">N° OT</th>
                 <th>Fecha</th>
-                <th>Campo</th>
+                <th class="ocultar-en-mobile">Campo</th>
                 <th>Lote</th>
                 <th>Servicio</th>
                 <th>Contratista</th>
-                <th>Cantidad</th>
-                <th>Costo/Ha</th>
-                <th>Maquina</th>
+                <th>Cant.</th>
+                <th class="ocultar-en-mobile">Costo</th>
+                <th class="ocultar-en-mobile">Maq</th>
             </tr>
         </thead>
         <tbody>
             <tr *ngFor="let orden of ordenes">
-                <td>{{orden.OT_ID}}</td>
+                <td class="ocultar-en-mobile">{{orden.OT_ID}}</td>
                 <td>{{orden.FECHA}}</td>
-                <td>{{orden.CAMPO}}</td>
+                <td class="ocultar-en-mobile">{{orden.CAMPO}}</td>
                 <td>{{orden.LOTE}}</td>
                 <td>{{orden.SERVICIO}}</td>
                 <td>{{orden.PROVEEDOR}}</td>
                 <td>{{orden.CANTIDAD}}</td>
-                <td>{{orden.COSTO}}</td>
-                <td>{{orden.MAQUINA}}</td>
+                <td class="ocultar-en-mobile">{{orden.COSTO}}</td>
+                <td class="ocultar-en-mobile">{{orden.MAQUINA}}</td>
             </tr>
         </tbody>
     </table>

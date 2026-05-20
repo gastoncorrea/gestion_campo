@@ -1,0 +1,30 @@
+h1 {
+    padding: 2%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 2%;
+    text-align: left;
+}s
+
+th {
+    font-weight: bold;
+    padding: 2%;
+}
+
+.ocultar-en-mobile {
+  display: block;
+}
+
+
+@media (max-width: 768px) {
+  .ocultar-en-mobile {
+    display: none;
+  }
+}
