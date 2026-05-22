@@ -1,24 +1,44 @@
-import { Component, inject } from '@angular/core';
-import { OrdenTrabajo } from '../../shared/services/orden-trabajo';
+import { Component, inject, signal } from '@angular/core';
+import { OrdenTrabajo } from '../../shared/services/OT/orden-trabajo';
 import { CommonModule } from '@angular/common';
+import { OrdenTrabajoDetalle } from '../orden-trabajo-detalle/orden-trabajo-detalle';
+import { OrdenDetalleService } from '../../shared/services/OT/orden-detalle-service';
 
 @Component({
   selector: 'app-orden-trabajo-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, OrdenTrabajoDetalle],
   templateUrl: './orden-trabajo-list.html',
   styleUrl: './orden-trabajo-list.scss',
 })
 export class OrdenTrabajoList {
 
   private ordenTrabajoService = inject(OrdenTrabajo);
+  private ordenDetalleService = inject(OrdenDetalleService);
 
-  ordenes: any[] = [];
+  ordenes = signal<any[]>([]);
+  otSeleccionada = signal<string | null>(null);
+  detalle_orden = signal<any[]>([]);
 
   ngOnInit(): void {
-    this.ordenTrabajoService.obtenerOrdenes().subscribe(data =>{
-      this.ordenes = data;
-      console.log(this.ordenes);
+    this.ordenTrabajoService.obtenerOrdenes().subscribe(data => {
+      this.ordenes.set(data);
+    })
+  }
+
+  seleccionarOrden(otId: string): void {
+    if (this.otSeleccionada() === otId) {
+      this.otSeleccionada.set(null);
+      this.detalle_orden.set([]);
+      return;
+    }
+    // abrir fila inmediatamente
+    this.otSeleccionada.set(otId);
+
+    // limpiar datos viejos
+    this.detalle_orden.set([]);
+    this.ordenDetalleService.obtenerDetalleOrdenes(otId).subscribe(data => {
+      this.detalle_orden.set(data);
     })
   }
 }

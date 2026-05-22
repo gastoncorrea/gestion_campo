@@ -1,0 +1,27 @@
+<div >
+    <div>
+        <h4 class="text-center">Detalle de OT</h4>
+    </div>
+    <table class="table table-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Dosis</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (item of detalles(); track $index) {
+            <tr>
+                <td>{{item.PRODUCTO}}</td>
+                <td>{{item.DOSIS}}</td>
+                <td>{{item.TOTAL}}</td>
+            </tr>
+            } @empty {
+            <tr>
+                <td colspan="3" class="text-center text-muted">Cargando detalles o sin datos...</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>

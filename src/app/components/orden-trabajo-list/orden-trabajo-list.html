@@ -1,9 +1,9 @@
-<div class="tabla-container">
+<div>
     <h1>Ordenes de trabajo</h1>
-    <table>
+    <table class="table table-striped">
         <thead>
             <tr>
-                <th class="ocultar-en-mobile">N° OT</th>
+                <th >N° OT</th>
                 <th>Fecha</th>
                 <th class="ocultar-en-mobile">Campo</th>
                 <th>Lote</th>
@@ -15,8 +15,9 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let orden of ordenes">
-                <td class="ocultar-en-mobile">{{orden.OT_ID}}</td>
+            @for (orden of ordenes(); track $index) {
+            <tr class="fila-principal" (click)="seleccionarOrden(orden.OT_ID)">
+                <td >{{orden.OT_ID}}</td>
                 <td>{{orden.FECHA}}</td>
                 <td class="ocultar-en-mobile">{{orden.CAMPO}}</td>
                 <td>{{orden.LOTE}}</td>
@@ -26,6 +27,14 @@
                 <td class="ocultar-en-mobile">{{orden.COSTO}}</td>
                 <td class="ocultar-en-mobile">{{orden.MAQUINA}}</td>
             </tr>
+            @if (otSeleccionada() === orden.OT_ID) {
+            <tr>
+                <td colspan="9" class="p-0">
+                    <app-orden-trabajo-detalle [detalles]="detalle_orden()"></app-orden-trabajo-detalle>
+                </td>
+            </tr>
+            }
+            }
         </tbody>
     </table>
 </div>
