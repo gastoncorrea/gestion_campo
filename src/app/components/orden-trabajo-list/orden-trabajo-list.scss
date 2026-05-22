@@ -7,6 +7,30 @@ h1 {
     padding: 2%;
 }
 
+.table-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+}
+
+thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
 .fila-principal{
     cursor: pointer;
 }

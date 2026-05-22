@@ -1,40 +1,42 @@
 <div class="width-max">
     <h1>Ordenes de trabajo</h1>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th >N° OT</th>
-                <th>Fecha</th>
-                <th class="ocultar-en-mobile">Campo</th>
-                <th>Lote</th>
-                <th>Servicio</th>
-                <th>Contratista</th>
-                <th>Cant.</th>
-                <th class="ocultar-en-mobile">Costo</th>
-                <th class="ocultar-en-mobile">Maq</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (orden of ordenes(); track $index) {
-            <tr class="fila-principal" (click)="seleccionarOrden(orden.OT_ID)">
-                <td >{{orden.OT_ID}}</td>
-                <td>{{orden.FECHA}}</td>
-                <td class="ocultar-en-mobile">{{orden.CAMPO}}</td>
-                <td>{{orden.LOTE}}</td>
-                <td>{{orden.SERVICIO}}</td>
-                <td>{{orden.PROVEEDOR}}</td>
-                <td>{{orden.CANTIDAD}}</td>
-                <td class="ocultar-en-mobile">{{orden.COSTO}}</td>
-                <td class="ocultar-en-mobile">{{orden.MAQUINA}}</td>
-            </tr>
-            @if (otSeleccionada() === orden.OT_ID) {
-            <tr>
-                <td colspan="9" class="p-0">
-                    <app-orden-trabajo-detalle [detalles]="detalle_orden()"></app-orden-trabajo-detalle>
-                </td>
-            </tr>
-            }
-            }
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th >N° OT</th>
+                    <th>Fecha</th>
+                    <th class="ocultar-en-mobile">Campo</th>
+                    <th>Lote</th>
+                    <th>Servicio</th>
+                    <th>Contratista</th>
+                    <th>Cant.</th>
+                    <th class="ocultar-en-mobile">Costo</th>
+                    <th class="ocultar-en-mobile">Maq</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (orden of ordenes(); track $index) {
+                <tr class="fila-principal" (click)="seleccionarOrden(orden.OT_ID)">
+                    <td >{{orden.OT_ID}}</td>
+                    <td>{{orden.FECHA}}</td>
+                    <td class="ocultar-en-mobile">{{orden.CAMPO}}</td>
+                    <td>{{orden.LOTE}}</td>
+                    <td>{{orden.SERVICIO}}</td>
+                    <td>{{orden.PROVEEDOR}}</td>
+                    <td>{{orden.CANTIDAD}}</td>
+                    <td class="ocultar-en-mobile">{{orden.COSTO}}</td>
+                    <td class="ocultar-en-mobile">{{orden.MAQUINA}}</td>
+                </tr>
+                @if (otSeleccionada() === orden.OT_ID) {
+                <tr>
+                    <td colspan="9" class="p-0">
+                        <app-orden-trabajo-detalle [detalles]="detalle_orden()"></app-orden-trabajo-detalle>
+                    </td>
+                </tr>
+                }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
