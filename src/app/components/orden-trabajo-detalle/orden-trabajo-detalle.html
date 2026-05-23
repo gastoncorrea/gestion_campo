@@ -17,11 +17,21 @@
                 <td>{{item.DOSIS}}</td>
                 <td>{{item.TOTAL}}</td>
             </tr>
-            } @empty {
+        } @empty {
             <tr>
                 <td colspan="3" class="text-center text-muted">Cargando detalles o sin datos...</td>
             </tr>
-            }
+        }
         </tbody>
     </table>
+    <div class="display-btn m-2 p-3">
+        <button class="btn btn-outline-primary">
+                Modificar
+            <fa-icon [icon]="faPen" />
+        </button>
+        <button class="btn btn-outline-primary">
+                Eliminar
+            <fa-icon [icon]="faTrash" />
+        </button>
+    </div>
 </div>

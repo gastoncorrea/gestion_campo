@@ -3,11 +3,13 @@ import { OrdenTrabajo } from '../../shared/services/OT/orden-trabajo';
 import { CommonModule } from '@angular/common';
 import { OrdenTrabajoDetalle } from '../orden-trabajo-detalle/orden-trabajo-detalle';
 import { OrdenDetalleService } from '../../shared/services/OT/orden-detalle-service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-orden-trabajo-list',
   standalone: true,
-  imports: [CommonModule, OrdenTrabajoDetalle],
+  imports: [CommonModule, OrdenTrabajoDetalle,FontAwesomeModule],
   templateUrl: './orden-trabajo-list.html',
   styleUrl: './orden-trabajo-list.scss',
 })
@@ -16,6 +18,7 @@ export class OrdenTrabajoList {
   private ordenTrabajoService = inject(OrdenTrabajo);
   private ordenDetalleService = inject(OrdenDetalleService);
 
+  faPlus = faPlus;
   ordenes = signal<any[]>([]);
   otSeleccionada = signal<string | null>(null);
   detalle_orden = signal<any[]>([]);
