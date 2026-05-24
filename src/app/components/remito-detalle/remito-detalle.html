@@ -1,0 +1,39 @@
+<div >
+    <div>
+        <h4 class="text-center">Detalle de Remito</h4>
+    </div>
+    <table class="table table-sm p-2">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Costo un.</th>
+                <th>Cant. total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (item of detalles(); track $index) {
+            <tr>
+                <td>{{item.Producto}}</td>
+                <td>{{item.Cantidad}}</td>
+                <td>{{item['Costo un']}}</td>
+                <td>{{item['Cant total']}}</td>
+            </tr>
+        } @empty {
+            <tr>
+                <td colspan="4" class="text-center text-muted">Cargando detalles o sin datos...</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <div class="display-btn m-2 p-3">
+        <button class="btn btn-outline-primary">
+                Modificar
+            <fa-icon [icon]="faPen" />
+        </button>
+        <button class="btn btn-outline-primary">
+                Eliminar
+            <fa-icon [icon]="faTrash" />
+        </button>
+    </div>
+</div>

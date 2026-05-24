@@ -22,7 +22,7 @@ export class RemitoService {
 
       return this.http.get<any>(url).pipe(
         map(response => {
-          const rows = response.value || [];
+          const rows = response.values || [];
           if(rows.length === 0) return [];
 
           const headers = rows[0];

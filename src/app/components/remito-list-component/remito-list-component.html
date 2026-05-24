@@ -1,0 +1,38 @@
+<div class="width-max">
+    <div class="d-flex justify-content-between my-4">
+        <h1>Remitos</h1>
+        <button class="btn btn-outline-primary py-0 m-0">
+            Crear Remito
+            <fa-icon [icon]="faPlus" />
+        </button>
+    </div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>N° Remito</th>
+                <th>Emisor</th>
+                <th>Receptor</th>
+                <th>Fecha de emisión</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (remito of remitos(); track $index) {
+            <tr class="fila-principal" (click)="seleccionarRemito(remito)">
+                <td>{{remito.Re_id}}</td>
+                <td>{{remito['Nro Remito']}}</td>
+                <td>{{remito.Emisor}}</td>
+                <td>{{remito.Receptor}}</td>
+                <td>{{remito['Fecha de emision']}}</td>
+            </tr>
+            @if (remitoSeleccionado() === (remito.Re_id || remito['Nro Remito'] || remito['N° Remito'])) {
+            <tr>
+                <td colspan="5" class="p-0">
+                    <app-remito-detalle [detalles]="detalle_remito()"></app-remito-detalle>
+                </td>
+            </tr>
+            }
+            }
+        </tbody>
+    </table>
+</div>
