@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faChartBar, } from '@fortawesome/free-solid-svg-icons'
+import { faChartBar, faDollarSign } from '@fortawesome/free-solid-svg-icons'
 import { faFileLines} from '@fortawesome/free-regular-svg-icons'
 
 @Component({
@@ -13,5 +13,6 @@ import { faFileLines} from '@fortawesome/free-regular-svg-icons'
 export class Home {
   faChartBar = faChartBar;
   faFileLines = faFileLines;
+  faDollarSign = faDollarSign;
 }
 
