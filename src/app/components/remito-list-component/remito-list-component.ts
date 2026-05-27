@@ -5,11 +5,13 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { RemitoService } from '../../shared/services/remito/remito-service';
 import { RemitoDetalleService } from '../../shared/services/remito/remito-detalle-service';
 import { RemitoDetalle } from '../remito-detalle/remito-detalle';
+import { faCircleLeft } from '@fortawesome/free-regular-svg-icons';
+import { RouterLink } from "@angular/router";
 
 @Component({
   selector: 'app-remito-list-component',
   standalone: true,
-  imports: [CommonModule, RemitoDetalle, FontAwesomeModule],
+  imports: [CommonModule, RemitoDetalle, FontAwesomeModule, RouterLink],
   templateUrl: './remito-list-component.html',
   styleUrl: './remito-list-component.scss',
 })
@@ -18,6 +20,7 @@ export class RemitoListComponent {
   private remitoDetalleService = inject(RemitoDetalleService);
 
   faPlus = faPlus;
+  faCircleLeft = faCircleLeft;
   remitos = signal<any[]>([]);
   remitoSeleccionado = signal<string | null>(null);
   detalle_remito = signal<any[]>([]);
