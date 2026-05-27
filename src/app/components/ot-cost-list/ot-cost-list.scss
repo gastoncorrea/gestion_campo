@@ -1,0 +1,42 @@
+.size-icon {
+  font-size: 40px;
+}
+.width-max {
+  max-width: 800px;
+  margin: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+}
+
+thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.fila-principal {
+  cursor: pointer;
+}
+.fila-principal:hover {
+  background-color: aqua;
+}
+
+.ocultar-en-mobile {
+  display: table-cell;
+}
+
+@media (max-width: 768px) {
+  .ocultar-en-mobile {
+    display: none;
+  }
+}

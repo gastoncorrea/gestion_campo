@@ -1,0 +1,38 @@
+<div class="width-max">
+    <div>
+        <a routerLink="/">
+            <fa-icon [icon]="faCircleLeft" class="size-icon btn btn-outline-primary border-0" />
+        </a>
+    </div>
+    <div class="d-flex justify-content-between my-4">
+        <h1>Costos de OT</h1>
+        <button class="btn btn-outline-primary py-0 m-0">
+            Registrar Costo
+            <fa-icon [icon]="faPlus" />
+        </button>
+    </div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>N° OT</th>
+                <th>Fecha</th>
+                <th>Costo Servicio</th>
+                <th>Costo Insumos</th>
+                <th>Costo Total</th>
+                <th>Moneda</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (cost of costs(); track cost.id) {
+            <tr class="fila-principal">
+                <td>{{cost.ot_id}}</td>
+                <td>{{cost.fecha}}</td>
+                <td>{{cost.costo_servicio | currency:cost.moneda}}</td>
+                <td>{{cost.costo_insumos | currency:cost.moneda}}</td>
+                <td>{{cost.costo_total | currency:cost.moneda}}</td>
+                <td>{{cost.moneda}}</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>

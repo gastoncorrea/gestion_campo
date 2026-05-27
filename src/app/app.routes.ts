@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { OrdenTrabajoList } from './components/orden-trabajo-list/orden-trabajo-list';
 import { Home } from './pages/home/home';
 import { RemitoListComponent } from './components/remito-list-component/remito-list-component';
+import { OtCostList } from './components/ot-cost-list/ot-cost-list';
 
 export const routes: Routes = [
     {
@@ -15,5 +16,9 @@ export const routes: Routes = [
     {
         path:'remitos',
         component: RemitoListComponent
+    },
+    {
+        path:'otcost',
+        component: OtCostList
     }
 ];
