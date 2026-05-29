@@ -13,7 +13,7 @@
         </thead>
         <tbody>
             @for (item of detalles(); track $index) {
-            <tr>
+            <tr [ngClass]="estaValorizado(item.Producto) ? 'item-valorizado' : 'item-pendiente'">
                 <td>{{item.Producto}}</td>
                 <td>{{item.Cantidad}}</td>
                 <td>{{item['Costo un']}}</td>
@@ -27,6 +27,10 @@
         </tbody>
     </table>
     <div class="display-btn m-2 p-3">
+        <button class="btn btn-outline-success" (click)="abrirModalGenerarCompra()">
+            Generar compra
+            <fa-icon [icon]="faCartPlus" />
+        </button>
         <button class="btn btn-outline-primary">
                 Modificar
             <fa-icon [icon]="faPen" />
@@ -36,4 +40,76 @@
             <fa-icon [icon]="faTrash" />
         </button>
     </div>
+
+    <!-- Modal Generar Compra -->
+    @if (mostrarModal()) {
+    <div class="modal-overlay">
+        <div class="modal-content p-4">
+            <h3>Generar Compra - Remito #{{idRemito()}}</h3>
+            <form [formGroup]="compraForm" (ngSubmit)="guardarCompra()">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" class="form-control" formControlName="fecha">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Proveedor</label>
+                        <input type="text" class="form-control" formControlName="proveedor">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Moneda</label>
+                        <select class="form-select" formControlName="moneda">
+                            <option value="ARS">Pesos (ARS)</option>
+                            <option value="USD">Dólares (USD)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h5>Detalle de Productos</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Precio Unit.</th>
+                                <th>% Imp.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody formArrayName="detalles">
+                            @for (item of detallesForm.controls; track $index) {
+                            <tr [formGroupName]="$index">
+                                <td>{{item.get('producto')?.value}}</td>
+                                <td>{{item.get('cantidad')?.value}}</td>
+                                <td><input type="number" class="form-control form-control-sm" formControlName="precio" (input)="calcularSubtotal($index)"></td>
+                                <td>
+                                    <select class="form-select form-select-sm" formControlName="impuesto" (change)="calcularSubtotal($index)">
+                                        <option [value]="0">0%</option>
+                                        <option [value]="10.5">10.5%</option>
+                                        <option [value]="21">21%</option>
+                                        <option [value]="27">27%</option>
+                                    </select>
+                                </td>
+                                <td>{{item.get('subtotal')?.value}}</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-end mb-3">
+                    <h4>Total: {{compraForm.get('total')?.value}}</h4>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" (click)="mostrarModal.set(false)">Cancelar</button>
+                    <button type="submit" class="btn btn-success" [disabled]="compraForm.invalid">Guardar Compra</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    }
 </div>

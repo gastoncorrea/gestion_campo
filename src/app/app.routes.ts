@@ -3,6 +3,7 @@ import { OrdenTrabajoList } from './components/orden-trabajo-list/orden-trabajo-
 import { Home } from './pages/home/home';
 import { RemitoListComponent } from './components/remito-list-component/remito-list-component';
 import { OtCostList } from './components/ot-cost-list/ot-cost-list';
+import { ComprasListComponent } from './components/compras-list-component/compras-list-component';
 
 export const routes: Routes = [
     {
@@ -20,5 +21,9 @@ export const routes: Routes = [
     {
         path:'otcost',
         component: OtCostList
+    },
+    {
+        path: 'compras',
+        component: ComprasListComponent
     }
 ];

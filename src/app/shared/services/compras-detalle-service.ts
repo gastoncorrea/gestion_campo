@@ -1,57 +1,55 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
-export class Compras {
+export class CompraDetalleService {
   private http = inject(HttpClient);
 
   private apiKey = environment.apiKey;
   private spreadsSheetId = environment.spreadsheetId;
-  private sheetName = "Compra";
+  private sheetName = "Detalle compra";
 
-  obtenerCompras(): Observable<any[]> {
-    const rango = encodeURIComponent(`${this.sheetName}!A1:Z1000`);
-
+  obtenerTodosLosDetalles(): Observable<any[]> {
+    const rango = encodeURIComponent(`${this.sheetName}!A1:Z2000`);
     const url =
       `https://sheets.googleapis.com/v4/spreadsheets/` +
       `${this.spreadsSheetId}/values/${rango}?key=${this.apiKey}`;
 
     return this.http.get<any>(url).pipe(
       map(response => {
-        const rows = response.values || [];
-        if (rows.length === 0) return [];
+        const filas = response.values || [];
+        if (filas.length < 2) return [];
 
-        const headers = rows[0];
-
-        return rows.slice(1).map((row: any[]) => {
+        const headers = filas[0];
+        return filas.slice(1).map((fila: any[]) => {
           const obj: any = {};
-
           headers.forEach((header: string, index: number) => {
-            obj[header] = row[index] ?? '';
+            obj[header] = fila[index] ?? '';
           });
           return obj;
-        })
+        });
       })
-    )
+    );
   }
 
-  crearCompra(compra: any, token: string): Observable<any> {
+  crearDetallesCompra(detalles: any[], token: string): Observable<any> {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsSheetId}/values/${this.sheetName}:append?valueInputOption=USER_ENTERED`;
     
-    const body = {
-      values: [[
-        compra.id_compra,
-        compra.id_rem,
-        compra.fecha,
-        compra.proveedor,
-        compra.moneda,
-        compra.total
-      ]]
-    };
+    const rows = detalles.map(d => [
+      d.id_detalle_compra,
+      d.id_compra,
+      d.detalle_rem_id,
+      d.producto, // Asumiendo que se quiere guardar el nombre del producto también
+      d.precio,
+      d.impuesto,
+      d.subtotal
+    ]);
+
+    const body = { values: rows };
 
     return this.http.post(url, body, {
       headers: { 'Authorization': `Bearer ${token}` }

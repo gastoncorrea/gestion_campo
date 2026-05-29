@@ -11,7 +11,7 @@
             <fa-icon [icon]="faPlus" />
         </button>
     </div>
-    <table class="table table-striped">
+    <table class="table">
         <thead>
             <tr>
                 <th>ID</th>
@@ -19,21 +19,28 @@
                 <th>Emisor</th>
                 <th>Receptor</th>
                 <th>Fecha de emisión</th>
+                <th>Estado</th>
             </tr>
         </thead>
         <tbody>
             @for (remito of remitos(); track $index) {
-            <tr class="fila-principal" (click)="seleccionarRemito(remito)">
+            <tr class="fila-principal" (click)="seleccionarRemito(remito)" [ngClass]="remito.claseEstado">
                 <td>{{remito.Re_id}}</td>
                 <td>{{remito['Nro Remito']}}</td>
                 <td>{{remito.Emisor}}</td>
                 <td>{{remito.Receptor}}</td>
                 <td>{{remito['Fecha de emision']}}</td>
+                <td>{{remito.estado}}</td>
             </tr>
             @if (remitoSeleccionado() === (remito.Re_id || remito['Nro Remito'] || remito['N° Remito'])) {
             <tr>
-                <td colspan="5" class="p-0">
-                    <app-remito-detalle [detalles]="detalle_remito()"></app-remito-detalle>
+                <td colspan="6" class="p-0">
+                    <app-remito-detalle 
+                        [detalles]="detalle_remito()"
+                        [compras]="todasLasCompras()"
+                        [detallesCompras]="todosLosDetallesCompras()"
+                        [idRemito]="remito.Re_id || remito['Nro Remito'] || remito['N° Remito']">
+                    </app-remito-detalle>
                 </td>
             </tr>
             }
