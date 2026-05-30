@@ -44,7 +44,7 @@ export class RemitoDetalleService {
 
         const filtrados = objetos.filter(item => {
           // Buscamos en cualquier columna que pueda ser el ID de vinculación
-          const val = item['N° Remito'] || item['Nro Remito'] || item['REMITO_ID'] || item['Re_id'];
+          const val = item['Nro Remito'];
           return val && String(val).trim() === String(id).trim();
         });
 

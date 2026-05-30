@@ -24,7 +24,7 @@
         </thead>
         <tbody>
             @for (remito of remitos(); track $index) {
-            <tr class="fila-principal" (click)="seleccionarRemito(remito)" [ngClass]="remito.claseEstado">
+            <tr class="fila-principal" (click)="seleccionarRemito($event, remito)" [ngClass]="remito.estado === 'Completo' ? '' : remito.claseEstado">
                 <td>{{remito.Re_id}}</td>
                 <td>{{remito['Nro Remito']}}</td>
                 <td>{{remito.Emisor}}</td>
@@ -32,14 +32,18 @@
                 <td>{{remito['Fecha de emision']}}</td>
                 <td>{{remito.estado}}</td>
             </tr>
-            @if (remitoSeleccionado() === (remito.Re_id || remito['Nro Remito'] || remito['N° Remito'])) {
+            @if (remitoSeleccionado() === (remito['Nro Remito'])) {
             <tr>
                 <td colspan="6" class="p-0">
                     <app-remito-detalle 
                         [detalles]="detalle_remito()"
                         [compras]="todasLasCompras()"
                         [detallesCompras]="todosLosDetallesCompras()"
-                        [idRemito]="remito.Re_id || remito['Nro Remito'] || remito['N° Remito']">
+                        [idRemito]="remito['Nro Remito']"
+                        [nroRemito]="remito['Nro Remito']"
+                        [proveedor]="remito.Emisor"
+                        [estado]="remito.estado"
+                        (compraGuardada)="cargarDatos()">
                     </app-remito-detalle>
                 </td>
             </tr>

@@ -12,8 +12,8 @@
             </tr>
         </thead>
         <tbody>
-            @for (item of detalles(); track $index) {
-            <tr [ngClass]="estaValorizado(item.Producto) ? 'item-valorizado' : 'item-pendiente'">
+            @for (item of detallesConEstado(); track $index) {
+            <tr [ngClass]="item.claseEstado">
                 <td>{{item.Producto}}</td>
                 <td>{{item.Cantidad}}</td>
                 <td>{{item['Costo un']}}</td>
@@ -27,10 +27,12 @@
         </tbody>
     </table>
     <div class="display-btn m-2 p-3">
+        @if (estado() !== 'Completo') {
         <button class="btn btn-outline-success" (click)="abrirModalGenerarCompra()">
             Generar compra
             <fa-icon [icon]="faCartPlus" />
         </button>
+        }
         <button class="btn btn-outline-primary">
                 Modificar
             <fa-icon [icon]="faPen" />
@@ -45,14 +47,18 @@
     @if (mostrarModal()) {
     <div class="modal-overlay">
         <div class="modal-content p-4">
-            <h3>Generar Compra - Remito #{{idRemito()}}</h3>
+            <h3>Generar Compra - Remito #{{nroRemito()}}</h3>
             <form [formGroup]="compraForm" (ngSubmit)="guardarCompra()">
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <label class="form-label">Nro Remito</label>
+                        <input type="text" class="form-control" formControlName="nro_remito">
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">Fecha</label>
                         <input type="date" class="form-control" formControlName="fecha">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label">Proveedor</label>
                         <input type="text" class="form-control" formControlName="proveedor">
                     </div>
@@ -93,7 +99,7 @@
                                         <option [value]="27">27%</option>
                                     </select>
                                 </td>
-                                <td>{{item.get('subtotal')?.value}}</td>
+                                <td>{{item.get('total')?.value}}</td>
                             </tr>
                             }
                         </tbody>
@@ -106,7 +112,7 @@
 
                 <div class="d-flex justify-content-end gap-2">
                     <button type="button" class="btn btn-secondary" (click)="mostrarModal.set(false)">Cancelar</button>
-                    <button type="submit" class="btn btn-success" [disabled]="compraForm.invalid">Guardar Compra</button>
+                    <button type="submit" class="btn btn-success">Guardar Compra</button>
                 </div>
             </form>
         </div>

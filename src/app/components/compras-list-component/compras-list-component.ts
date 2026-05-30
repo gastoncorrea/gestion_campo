@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Compras } from '../../shared/services/compras';
+import { Compras } from '../../shared/services/compras/compras';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { faCircleLeft } from '@fortawesome/free-regular-svg-icons';

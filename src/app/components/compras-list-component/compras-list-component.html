@@ -24,11 +24,11 @@
         <tbody>
             @for (compra of compras(); track $index) {
             <tr>
-                <td>{{compra.id_compra}}</td>
-                <td>{{compra.id_rem}}</td>
-                <td>{{compra.fecha}}</td>
-                <td>{{compra.proveedor}}</td>
-                <td>{{compra.moneda}}</td>
+                <td>{{compra['id_compra']}}</td>
+                <td>{{compra['Nro Remito']}}</td>
+                <td>{{compra['fecha']}}</td>
+                <td>{{compra['proveedor']}}</td>
+                <td>{{compra['moneda']}}</td>
             </tr>
             }
         </tbody>
