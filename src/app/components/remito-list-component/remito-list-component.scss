@@ -27,20 +27,12 @@ thead th {
 .fila-principal{
     cursor: pointer;
 }
-.fila-principal:hover td {
-    background-color: aqua !important;
-}
-
 .table tbody tr.estado-pendiente td {
     background-color: #ffcccc !important;
 }
 
 .table tbody tr.estado-parcial td {
     background-color: #ffffcc !important;
-}
-
-.table tbody tr.estado-completo td {
-    background-color: #ccffcc !important;
 }
 
 .ocultar-en-mobile {

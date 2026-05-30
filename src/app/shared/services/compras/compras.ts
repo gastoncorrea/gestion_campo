@@ -48,7 +48,8 @@ export class Compras {
           const itemsEnDetalleRemito = detallesRemitos.filter(item => {
             const valRaw = String(item['Nro Remito']).trim();
             const val = valRaw.includes('-') ? valRaw.split('-')[1] : valRaw;
-            return val === idRemito;
+            const esItemValido = item['Estado'] ? item['Estado'] === 'Pendiente' : true;
+            return val === idRemito && esItemValido;
           });
 
           const comprasAsociadasIds = compras

@@ -1,0 +1,27 @@
+<div class="p-3 bg-light">
+    <h5 class="mb-3">Detalle de Compra</h5>
+    <table class="table table-sm table-bordered">
+        <thead class="table-secondary">
+            <tr>
+                <th>Producto</th>
+                <th>Precio Unit.</th>
+                <th>Impuesto (%)</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (item of detalles(); track $index) {
+            <tr>
+                <td>{{item.producto}}</td>
+                <td>{{item.precio | number:'1.2-2'}}</td>
+                <td>{{item.impuesto}}%</td>
+                <td>{{item.total | number:'1.2-2'}}</td>
+            </tr>
+            } @empty {
+            <tr>
+                <td colspan="4" class="text-center text-muted">No hay items registrados para esta compra.</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -11,7 +11,7 @@
             <fa-icon [icon]="faPlus" />
         </button>
     </div>
-    <table class="table table-striped">
+    <table class="table">
         <thead>
             <tr>
                 <th>ID Compra</th>
@@ -23,13 +23,20 @@
         </thead>
         <tbody>
             @for (compra of compras(); track $index) {
-            <tr>
+            <tr class="fila-principal" (click)="seleccionarCompra($event, compra)">
                 <td>{{compra['id_compra']}}</td>
                 <td>{{compra['Nro Remito']}}</td>
                 <td>{{compra['fecha']}}</td>
                 <td>{{compra['proveedor']}}</td>
                 <td>{{compra['moneda']}}</td>
             </tr>
+            @if (esCompraSeleccionada(compra)) {
+            <tr>
+                <td colspan="5" class="p-0">
+                    <app-compra-detalle [detalles]="detalles_compra()"></app-compra-detalle>
+                </td>
+            </tr>
+            }
             }
         </tbody>
     </table>

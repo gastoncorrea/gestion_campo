@@ -111,8 +111,10 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary" (click)="mostrarModal.set(false)">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar Compra</button>
+                    <button type="button" class="btn btn-secondary" (click)="mostrarModal.set(false)" [disabled]="cargando()">Cancelar</button>
+                    <button type="submit" class="btn btn-success" [disabled]="cargando()">
+                        {{ cargando() ? 'Guardando...' : 'Guardar Compra' }}
+                    </button>
                 </div>
             </form>
         </div>

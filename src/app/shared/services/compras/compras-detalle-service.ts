@@ -36,6 +36,12 @@ export class CompraDetalleService {
     );
   }
 
+  obtenerDetallesPorCompra(idCompra: string): Observable<any[]> {
+    return this.obtenerTodosLosDetalles().pipe(
+      map(detalles => detalles.filter(d => String(d.id_compra).trim() === String(idCompra).trim()))
+    );
+  }
+
   crearDetallesCompra(detalles: any[], token: string): Observable<any> {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsSheetId}/values/${this.sheetName}:append?valueInputOption=USER_ENTERED`;
     
