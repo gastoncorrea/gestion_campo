@@ -4,35 +4,114 @@
             <fa-icon [icon]="faCircleLeft" class="size-icon btn btn-outline-primary border-0" />
         </a>
     </div>
-    <div class="d-flex justify-content-between my-4">
-        <h1>Costos de OT</h1>
-        <button class="btn btn-outline-primary py-0 m-0">
-            Registrar Costo
-            <fa-icon [icon]="faPlus" />
-        </button>
-    </div>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>N° OT</th>
-                <th>Fecha</th>
-                <th>Costo Servicio</th>
-                <th>Costo Insumos</th>
-                <th>Costo Total</th>
-                <th>Moneda</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (cost of costs(); track cost.id) {
-            <tr class="fila-principal">
-                <td>{{cost.ot_id}}</td>
-                <td>{{cost.fecha}}</td>
-                <td>{{cost.costo_servicio | currency:cost.moneda}}</td>
-                <td>{{cost.costo_insumos | currency:cost.moneda}}</td>
-                <td>{{cost.costo_total | currency:cost.moneda}}</td>
-                <td>{{cost.moneda}}</td>
-            </tr>
-            }
-        </tbody>
-    </table>
+
+    @if (isLoading()) {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    } @else {
+        <!-- Sección de OT Pendientes -->
+        @if (pendingOts().length > 0) {
+            <div class="mb-5">
+                <div class="d-flex align-items-center mb-3 text-warning">
+                    <fa-icon [icon]="faExclamationTriangle" class="me-2 fs-4" />
+                    <h2 class="m-0">OT Pendientes de Valorización</h2>
+                </div>
+                
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>N° OT</th>
+                            <th>Fecha</th>
+                            <th class="ocultar-en-mobile">Campo</th>
+                            <th>Lote</th>
+                            <th>Servicio</th>
+                            <th>Contratista</th>
+                            <th>Cant.</th>
+                            <th class="ocultar-en-mobile">Maq</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (ot of pendingOts(); track ot.OT_ID) {
+                        <tr class="fila-principal" (click)="seleccionarOrden(ot.OT_ID)">
+                            <td>{{ot.OT_ID}}</td>
+                            <td>{{ot.FECHA}}</td>
+                            <td class="ocultar-en-mobile">{{ot.CAMPO}}</td>
+                            <td>{{ot.LOTE}}</td>
+                            <td>{{ot.SERVICIO}}</td>
+                            <td>{{ot.PROVEEDOR}}</td>
+                            <td>{{ot.CANTIDAD}}</td>
+                            <td class="ocultar-en-mobile">{{ot.MAQUINA}}</td>
+                        </tr>
+                        @if (otSeleccionada() === ot.OT_ID) {
+                        <tr>
+                            <td colspan="8" class="p-0">
+                                <app-orden-trabajo-detalle 
+                                    [detalles]="detalle_orden()" 
+                                    [otId]="ot.OT_ID" 
+                                    [showGenerarLabor]="true"
+                                    [showEditDelete]="false">
+                                </app-orden-trabajo-detalle>
+                            </td>
+                        </tr>
+                        }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <hr class="my-5">
+        }
+
+        <!-- Lista de Costos Registrados -->
+        <div class="d-flex justify-content-between my-4 align-items-center">
+            <h1>Historial de Costos de Labores</h1>
+            <button class="btn btn-outline-primary py-1" routerLink="/new-cost">
+                Registrar Costo Libre
+                <fa-icon [icon]="faPlus" class="ms-1" />
+            </button>
+        </div>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID Labor</th>
+                    <th>N° OT</th>
+                    <th>Fecha</th>
+                    <th class="text-end">Cant.</th>
+                    <th class="text-end">Costo Unit. Serv.</th>
+                    <th class="text-end">Total Serv.</th>
+                    <th class="text-end">Costo Insumos</th>
+                    <th class="text-end">Costo Total</th>
+                    <th>Moneda</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (cost of costs(); track cost.id_labor) {
+                <tr class="fila-principal">
+                    <td>{{cost.id_labor}}</td>
+                    <td>{{cost.id_ot}}</td>
+                    <td>{{cost.fecha}}</td>
+                    <td class="text-end">{{cost.cantidad}}</td>
+                    <td class="text-end">{{cost.total_servicio | currency:cost.moneda}}</td>
+                    <td class="text-end fw-bold">{{cost.total_costo_servicio | currency:cost.moneda}}</td>
+                    <td class="text-end">{{cost.total_insumos | currency:cost.moneda}}</td>
+                    <td class="text-end fw-bold text-primary">{{cost.total | currency:cost.moneda}}</td>
+                    <td>{{cost.moneda}}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-info" [routerLink]="['/cost-detail', cost.id_labor]">
+                            Ver Detalle
+                        </button>
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="10" class="text-center p-4">No se encontraron costos registrados.</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    }
 </div>

@@ -41,7 +41,7 @@
             @if (otSeleccionada() === orden.OT_ID) {
             <tr>
                 <td colspan="9" class="p-0">
-                    <app-orden-trabajo-detalle [detalles]="detalle_orden()"></app-orden-trabajo-detalle>
+                    <app-orden-trabajo-detalle [detalles]="detalle_orden()" [otId]="orden.OT_ID"></app-orden-trabajo-detalle>
                 </td>
             </tr>
             }

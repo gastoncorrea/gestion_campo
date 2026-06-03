@@ -25,13 +25,21 @@
         </tbody>
     </table>
     <div class="display-btn m-2 p-3">
-        <button class="btn btn-outline-primary">
-                Modificar
-            <fa-icon [icon]="faPen" />
-        </button>
-        <button class="btn btn-outline-primary">
-                Eliminar
-            <fa-icon [icon]="faTrash" />
-        </button>
+        @if (showGenerarLabor() && otId()) {
+            <button class="btn btn-warning" [routerLink]="['/new-cost', otId()]">
+                Generar labor
+                <fa-icon [icon]="faPlus" />
+            </button>
+        }
+        @if (showEditDelete()) {
+            <button class="btn btn-outline-primary">
+                    Modificar
+                <fa-icon [icon]="faPen" />
+            </button>
+            <button class="btn btn-outline-primary">
+                    Eliminar
+                <fa-icon [icon]="faTrash" />
+            </button>
+        }
     </div>
 </div>
