@@ -86,7 +86,6 @@
                     <th class="text-end">Costo Insumos</th>
                     <th class="text-end">Costo Total</th>
                     <th>Moneda</th>
-                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,11 +100,6 @@
                     <td class="text-end">{{cost.total_insumos_calculado | currency:cost.moneda}}</td>
                     <td class="text-end fw-bold text-primary">{{cost.total_final | currency:cost.moneda}}</td>
                     <td>{{cost.moneda}}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-info" [routerLink]="['/cost-detail', cost.id_labor]">
-                            Ver Detalle
-                        </button>
-                    </td>
                 </tr>
                 @if (laborSeleccionada() === cost.id_labor) {
                 <tr>
