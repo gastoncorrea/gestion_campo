@@ -11,7 +11,7 @@ export class CostoLaboresDetalleService {
 
   private apiKey = environment.apiKey;
   private spreadsSheetId = environment.spreadsheetId;
-  private sheetName = "Detalle Costos labores";
+  private sheetName = "Detalle Costo labores";
 
   obtenerTodosLosDetalles(): Observable<any[]> {
     const rango = encodeURIComponent(`${this.sheetName}!A1:Z2000`);
