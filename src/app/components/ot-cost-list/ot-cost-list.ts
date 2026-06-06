@@ -73,6 +73,7 @@ export class OtCostList {
         const costosCalculados = costos.map(cost => {
           const orden = ordenes.find(ot => String(ot.OT_ID).trim() === String(cost.id_ot).trim());
           const cantidad = orden ? Number(orden.CANTIDAD) || 0 : 0;
+          const lote = orden ? orden.LOTE : (cost.lote || ''); 
           
           // Nombres de campos según el usuario: costo_servicio, total_costo_ot
           const costoServicioUnitario = Number(cost.costo_servicio) || 0; 
@@ -90,6 +91,7 @@ export class OtCostList {
           return {
             ...cost,
             cantidad,
+            lote,
             costo_servicio_unitario: costoServicioUnitario,
             total_costo_servicio: totalCostoServicio,
             total_insumos_calculado: sumatoriaInsumos,
@@ -190,9 +192,11 @@ export class OtCostList {
           fecha: ['', Validators.required],
           costo_servicio: [0, [Validators.required, Validators.min(0)]],
           moneda: ['ARS', Validators.required],
+          cotizacion_moneda: [1, [Validators.min(1)]],
           total_servicio_ot: [0],
           total_insumos: [0],
           total_final: [0],
+          total_final_ars: [0],
           detalles: this.fb.array(this.detalle_orden().map(d => {
             const prodNombre = String(d.PRODUCTO || '').trim().toUpperCase();
             const costoSugerido = costosPonderados[prodNombre] || 0;
@@ -240,11 +244,14 @@ export class OtCostList {
     });
 
     const totalFinal = totalServicio + totalInsumos;
+    const cotizacion = this.laborForm.get('cotizacion_moneda')?.value || 1;
+    const totalFinalArs = this.laborForm.get('moneda')?.value === 'USD' ? totalFinal * cotizacion : totalFinal;
 
     this.laborForm.patchValue({
       total_servicio_ot: totalServicio,
       total_insumos: totalInsumos,
-      total_final: totalFinal
+      total_final: totalFinal,
+      total_final_ars: totalFinalArs
     }, { emitEvent: false });
   }
 
@@ -262,14 +269,17 @@ export class OtCostList {
       id_ot: formValue.id_ot,
       fecha: formValue.fecha,
       moneda: formValue.moneda,
-      total_servicio: formValue.costo_servicio, // Guardamos el costo unitario como total_servicio según el servicio actual
+      cotizacion_moneda: formValue.cotizacion_moneda,
+      costo_servicio: formValue.costo_servicio, // Costo unitario
+      total_servicio_ot: formValue.total_servicio_ot, // Costo total del servicio (cant * unitario)
       total_insumos: formValue.total_insumos,
       total: formValue.total_final,
+      total_ars: formValue.total_final_ars,
       detalles: formValue.detalles.map((d: any) => ({
         id_det_labor: 'DET' + Date.now() + Math.floor(Math.random() * 1000),
         producto: d.producto,
         cantidad: d.cantidad,
-        costo_sugerido: 0, // No lo tenemos en la OT, enviamos 0
+        costo_sugerido: 0, 
         costo_utilizado: d.costo_utilizado,
         costo_total: d.costo_total_producto
       }))
@@ -277,10 +287,12 @@ export class OtCostList {
 
     this.costoLaboresService.crearCostoLabor(data).subscribe({
       next: () => {
-        alert('Labor generada exitosamente.');
         this.mostrarModal.set(false);
+        this.otSeleccionada.set(null);
+        this.detalle_orden.set([]);
         this.cargando.set(false);
         this.cargarDatos();
+        alert('Labor generada exitosamente.');
       },
       error: (err) => {
         console.error('Error al guardar labor:', err);

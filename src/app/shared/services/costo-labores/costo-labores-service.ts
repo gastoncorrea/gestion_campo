@@ -51,9 +51,11 @@ export class CostoLaboresService {
           id_ot: data.id_ot,
           fecha: data.fecha,
           moneda: data.moneda,
-          total_servicio: data.total_servicio,
+          cotizacion_moneda: data.cotizacion_moneda,
+          costo_servicio: data.costo_servicio,
+          total_servicio_ot: data.total_servicio_ot,
           total_insumos: data.total_insumos,
-          total: data.total
+          total: data.total_ars
         },
         detalle: data.detalles.map((item: any) => ({
           id_det_labor: item.id_det_labor,

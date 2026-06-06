@@ -79,6 +79,7 @@
                 <tr>
                     <th>ID Labor</th>
                     <th>N° OT</th>
+                    <th>Lote</th>
                     <th>Fecha</th>
                     <th class="text-end">Cant.</th>
                     <th class="text-end">Costo Unit. Serv.</th>
@@ -93,6 +94,7 @@
                 <tr class="fila-principal" (click)="seleccionarLabor(cost.id_labor)">
                     <td>{{cost.id_labor}}</td>
                     <td>{{cost.id_ot}}</td>
+                    <td>{{cost.lote}}</td>
                     <td>{{cost.fecha}}</td>
                     <td class="text-end">{{cost.cantidad}}</td>
                     <td class="text-end">{{cost.costo_servicio_unitario | currency:cost.moneda}}</td>
@@ -166,11 +168,20 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Moneda</label>
-                    <select class="form-select" formControlName="moneda">
+                    <select class="form-select" formControlName="moneda" (change)="calcularTotales()">
                         <option value="ARS">Pesos (ARS)</option>
                         <option value="USD">Dólares (USD)</option>
                     </select>
                 </div>
+                @if (laborForm.get('moneda')?.value === 'USD') {
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Cotización Moneda</label>
+                    <input type="number" class="form-control" formControlName="cotizacion_moneda" (input)="calcularTotales()">
+                </div>
+                }
+            </div>
+
+            <div class="row mb-4">
                 <div class="col-md-4">
                     <label class="form-label fw-bold text-success">Costo Servicio (Unit.)</label>
                     <div class="input-group">
@@ -227,6 +238,12 @@
                                 <span class="h5 m-0 fw-bold text-uppercase">Total Orden de Trabajo:</span>
                                 <span class="h4 m-0 fw-bold text-primary">{{laborForm.get('total_final')?.value | currency:laborForm.get('moneda')?.value}}</span>
                             </div>
+                            @if (laborForm.get('moneda')?.value === 'USD') {
+                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                <span class="h6 m-0 fw-bold text-success text-uppercase">Total en Pesos (ARS):</span>
+                                <span class="h5 m-0 fw-bold text-success">{{laborForm.get('total_final_ars')?.value | currency:'ARS'}}</span>
+                            </div>
+                            }
                         </div>
                     </div>
                 </div>

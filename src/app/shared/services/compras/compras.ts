@@ -117,7 +117,9 @@ export class Compras {
           id_rem: data.id_rem,
           fecha: data.fecha,
           proveedor: data.proveedor,
-          moneda: data.moneda
+          moneda: data.moneda,
+          cotizacion_moneda: data.cotizacion_moneda,
+          total: data.total_ars
         },
         detalle: data.detalles.map((item: any) => ({
           id_compra: data.id_compra,

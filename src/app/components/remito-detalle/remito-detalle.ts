@@ -88,11 +88,13 @@ export class RemitoDetalle {
       fecha: [new Date().toISOString().split('T')[0], Validators.required],
       proveedor: [{ value: this.proveedor(), disabled: true }, Validators.required],
       moneda: [moneda, Validators.required],
+      cotizacion_moneda: [1, [Validators.min(1)]],
       total: [0],
+      total_ars: [0],
       detalles: this.fb.array(productosPendientes.map(p => this.fb.group({
         id_det_rem: [p['Id_detalle']],
         producto: [p.Producto],
-        cantidad: [p.Cantidad],
+        cantidad: [p['Cant total'] || 0],
         precio: [0, [Validators.min(0), Validators.required]],
         impuesto: [21, [Validators.required]],
         total: [0]
@@ -111,7 +113,8 @@ export class RemitoDetalle {
     const group = this.detallesForm.at(index);
     const precio = group.get('precio')?.value || 0;
     const impuesto = group.get('impuesto')?.value || 0;
-    const cantidad = group.get('cantidad')?.value || 1;
+    const cantidadValue = group.get('cantidad')?.value;
+    const cantidad = parseFloat(cantidadValue) || 0;
     
     const subtotal = (precio + (precio * impuesto / 100)) * cantidad;
     group.patchValue({ total: subtotal.toFixed(2) });
@@ -135,7 +138,13 @@ export class RemitoDetalle {
       .reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
 
     const totalFinal = totalPrevio + totalNuevos;
-    this.compraForm.patchValue({ total: totalFinal.toFixed(2) });
+    const cotizacion = this.compraForm.get('cotizacion_moneda')?.value || 1;
+    const totalArs = this.compraForm.get('moneda')?.value === 'USD' ? totalFinal * cotizacion : totalFinal;
+
+    this.compraForm.patchValue({ 
+      total: totalFinal.toFixed(2),
+      total_ars: totalArs.toFixed(2)
+    });
   }
 
   guardarCompra(): void {
@@ -178,7 +187,8 @@ export class RemitoDetalle {
       ...rawData,
       id_rem: this.idRemito(), 
       detalles: detallesFiltrados,
-      total: this.compraForm.get('total')?.value 
+      total: this.compraForm.get('total')?.value,
+      total_ars: this.compraForm.get('total_ars')?.value
     };
 
     this.cargando.set(true);
