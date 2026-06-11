@@ -55,7 +55,8 @@ export class CostoLaboresService {
           costo_servicio: data.costo_servicio,
           total_servicio_ot: data.total_servicio_ot,
           total_insumos: data.total_insumos,
-          total: data.total_ars
+          total: data.total,
+          totalArs: data.total_ars
         },
         detalle: data.detalles.map((item: any) => ({
           id_det_labor: item.id_det_labor,
