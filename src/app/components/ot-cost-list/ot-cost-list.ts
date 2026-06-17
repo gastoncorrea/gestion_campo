@@ -161,8 +161,6 @@ export class OtCostList implements OnInit {
     this.lastMoneda = 'ARS';
     this.lastCotizacion = 1;
 
-    console.log('--- Iniciando cálculo de ponderados con trazabilidad de Compras ---');
-
     forkJoin({
       comprasHeaders: this.comprasService.obtenerCompras(),
       comprasDetalles: this.compraDetalleService.obtenerTodosLosDetalles(),
@@ -173,28 +171,20 @@ export class OtCostList implements OnInit {
         
         comprasDetalles.forEach(cd => {
           const cdIdCompra = String(cd.id_compra || '').trim();
-          // RELACIÓN: Buscamos el header de la compra para obtener "moneda" y "tipo de cambio"
           const header = comprasHeaders.find(h => 
             String(h.id_compra || h['id_compra'] || h['ID Compra'] || '').trim() === cdIdCompra
           );
           
-          if (!header) {
-            console.warn(`No se encontró el encabezado para la compra ID: ${cdIdCompra}`);
-          }
+          if (!header) return;
 
           const cdIdDetRem = String(cd.id_det_rem || '').trim();
           const remitoItem = remitosDetalles.find(r => 
             String(r.id_detalle || r['id_detalle'] || r['ID Detalle'] || '').trim() === cdIdDetRem
           );
           
-          // Obtener cotización y moneda de forma robusta
           const cotizacionCompra = header ? Number(header.cotizacion_moneda || header['cotizacion_moneda'] || header['tipo_de_cambio'] || header['tipo_cambio'] || header['cotizacion'] || 1) : 1;
           const monedaCompraRaw = (header?.moneda || header?.['moneda'] || 'ARS').toString().toUpperCase();
           const monedaCompra = (monedaCompraRaw.includes('USD') || monedaCompraRaw.includes('U$S') || monedaCompraRaw.includes('DOLAR')) ? 'USD' : 'ARS';
-
-          if (monedaCompra === 'USD' && cotizacionCompra === 1 && header) {
-            console.log(`[ALERTA] Compra USD con Cotización 1. Verificando objeto header:`, header);
-          }
 
           const precioUnitario = Number(cd.precio || 0);
           const cantidad = remitoItem ? Number(remitoItem.cantidad || remitoItem['cantidad'] || 0) : 0;
@@ -206,7 +196,6 @@ export class OtCostList implements OnInit {
             base[prodNombre] = { totalMontoARS: 0, totalMontoUSD: 0, totalMontoUSD_a_ARS: 0, totalCant: 0, compras: [] };
           }
 
-          // GUARDAMOS LA RELACIÓN COMPLETA
           base[prodNombre].compras.push({
             compra_id: cdIdCompra,
             moneda: monedaCompra,
@@ -216,25 +205,13 @@ export class OtCostList implements OnInit {
           });
 
           if (monedaCompra === 'USD') {
-            // SI ES USD: precio = tipo_cambio * precio (Convertimos a pesos para el ponderado)
             const precioEnPesos = precioUnitario * cotizacionCompra;
             const montoConvertido = precioEnPesos * cantidad;
-            
             base[prodNombre].totalMontoUSD += precioUnitario * cantidad;
             base[prodNombre].totalMontoUSD_a_ARS += montoConvertido;
-            
-            console.log(`[PRUEBA USD] Producto: ${prodNombre}`);
-            console.log(`  > Compra ID: ${cdIdCompra}, Moneda: USD, Cotiz: ${cotizacionCompra}`);
-            console.log(`  > Precio Unit (USD): ${precioUnitario} -> Precio Unit (ARS): ${precioEnPesos.toFixed(2)}`);
-            console.log(`  > Monto Total ARS: ${montoConvertido.toFixed(2)}`);
           } else {
-            // SI ES ARS: usamos el precio directo
             const montoARS = precioUnitario * cantidad;
             base[prodNombre].totalMontoARS += montoARS;
-            
-            console.log(`[PRUEBA ARS] Producto: ${prodNombre}`);
-            console.log(`  > Compra ID: ${cdIdCompra}, Moneda: ARS, Precio Unit: ${precioUnitario}`);
-            console.log(`  > Monto Total ARS: ${montoARS.toFixed(2)}`);
           }
           base[prodNombre].totalCant += cantidad;
         });
@@ -298,9 +275,6 @@ export class OtCostList implements OnInit {
     const nuevaCotizacion = Number(formRaw.cotizacion_moneda) || 1;
     const cotizacionValida = nuevaCotizacion > 0 ? nuevaCotizacion : 1;
 
-    console.log(`--- Recalculando por cambio de Moneda/Cotización: ${this.lastMoneda} -> ${nuevaMoneda} (Cotiz: ${cotizacionValida}) ---`);
-
-    // 1. Convertir Costo de Servicio (este sí es un valor ingresado que se escala)
     let costoServicio = Number(formRaw.costo_servicio) || 0;
     if (this.lastMoneda === 'ARS' && nuevaMoneda === 'USD') {
       costoServicio = costoServicio / cotizacionValida;
@@ -311,7 +285,6 @@ export class OtCostList implements OnInit {
     }
     this.laborForm.get('costo_servicio')?.setValue(Number(Math.max(0, costoServicio).toFixed(2)), { emitEvent: false });
 
-    // 2. Recalcular Insumos desde la Base de Compras (Ponderado Real)
     this.detallesForm.controls.forEach((group) => {
       const prodNombre = String(group.get('producto')?.value || '').trim().toUpperCase();
       const dataProd = this.ponderadosBase[prodNombre];
@@ -320,16 +293,12 @@ export class OtCostList implements OnInit {
 
       let nuevoCostoSugerido = 0;
       if (nuevaMoneda === 'ARS') {
-        // Ponderado en Pesos: (MontoARS + MontoUSD*CotizCompra) / Cantidad
         nuevoCostoSugerido = (dataProd.totalMontoARS + dataProd.totalMontoUSD_a_ARS) / dataProd.totalCant;
       } else {
-        // Ponderado en Dólares: (MontoUSD + MontoARS/CotizActual) / Cantidad
-        // Esto hace que si la compra fue en USD 2, se mantenga en USD 2
         const montoARSenUSD = dataProd.totalMontoARS / cotizacionValida;
         nuevoCostoSugerido = (dataProd.totalMontoUSD + montoARSenUSD) / dataProd.totalCant;
       }
       
-      console.log(`  Prod: ${prodNombre}, Nuevo Sugerido (${nuevaMoneda}): ${nuevoCostoSugerido.toFixed(2)}`);
       group.get('costo_utilizado')?.setValue(Number(Math.max(0, nuevoCostoSugerido).toFixed(2)), { emitEvent: false });
     });
 
@@ -372,13 +341,11 @@ export class OtCostList implements OnInit {
 
   guardarLabor(): void {
     if (this.laborForm.invalid) {
-      console.warn('Formulario inválido al intentar guardar:', this.laborForm.errors);
       return;
     }
 
     const formValue = this.laborForm.getRawValue();
 
-    // Validaciones de seguridad por si el botón no se bloqueó a tiempo
     if (Number(formValue.costo_servicio) <= 0) {
       alert('El costo del servicio debe ser mayor a cero.');
       return;
