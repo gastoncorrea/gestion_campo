@@ -28,7 +28,19 @@ export class CostoLaboresDetalleService {
         return filas.slice(1).map((fila: any[]) => {
           const obj: any = {};
           headers.forEach((header: string, index: number) => {
-            obj[header] = fila[index] ?? '';
+            const val = fila[index] ?? '';
+            const normalizedKey = header.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/\s+/g, '_').trim();
+            
+            if (normalizedKey === 'id_labor' || normalizedKey === 'labor_id') {
+                obj['id_labor'] = val;
+            } else if (normalizedKey === 'costo_total' || normalizedKey === 'total') {
+                obj['costo_total'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            obj[header] = val;
           });
           return obj;
         });

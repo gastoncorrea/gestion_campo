@@ -31,7 +31,31 @@ export class OrdenTrabajo {
           const obj:any = {};
 
           headers.forEach((header:string,index:number) => {
-            obj[header] = row[index]??'';
+            const val = row[index]??'';
+            const normalizedKey = header.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/\s+/g, '_').trim();
+            
+            // Mapeo a las claves que usa el componente (parece que prefiere Mayúsculas para OT)
+            if (normalizedKey === 'ot_id' || normalizedKey === 'nro_ot' || normalizedKey === 'id_ot') {
+                obj['OT_ID'] = val;
+            } else if (normalizedKey === 'cantidad' || normalizedKey === 'cant') {
+                obj['CANTIDAD'] = val;
+            } else if (normalizedKey === 'lote') {
+                obj['LOTE'] = val;
+            } else if (normalizedKey === 'servicio') {
+                obj['SERVICIO'] = val;
+            } else if (normalizedKey === 'proveedor' || normalizedKey === 'contratista') {
+                obj['PROVEEDOR'] = val;
+            } else if (normalizedKey === 'campo') {
+                obj['CAMPO'] = val;
+            } else if (normalizedKey === 'maquina') {
+                obj['MAQUINA'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            
+            obj[header] = val;
           });
 
           return obj;

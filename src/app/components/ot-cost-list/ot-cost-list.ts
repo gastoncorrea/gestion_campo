@@ -87,18 +87,23 @@ export class OtCostList implements OnInit {
     }).subscribe({
       next: ({ costos, ordenes, detallesCostos }: { costos: any[], ordenes: any[], detallesCostos: any[] }) => {
         const costosCalculados = costos.map(cost => {
-          const idOt = String(cost.id_ot).trim();
+          const idOt = String(cost.id_ot || cost.OT_ID || '').trim();
           const orden = ordenes.find(ot => String(ot.OT_ID).trim() === idOt);
           const cantidad = orden ? Number(orden.CANTIDAD) || 0 : 0;
           const lote = orden ? orden.LOTE : (cost.lote || ''); 
           
           const costoServicioUnitario = Number(cost.costo_servicio) || 0; 
-          const totalFinal = Number(cost.total) || 0;
-          
           const totalCostoServicio = cantidad * costoServicioUnitario;
 
           const detallesDeEstaLabor = detallesCostos.filter((d: any) => String(d.id_labor).trim() === String(cost.id_labor).trim());
           const sumatoriaInsumos = detallesDeEstaLabor.reduce((acc: number, d: any) => acc + (Number(d.costo_total) || 0), 0);
+          
+          // El total final es la suma del servicio y los insumos
+          // Si el "total" de la hoja es 0 o no existe, usamos el calculado
+          let totalFinal = Number(cost.total || cost.costo_total) || 0;
+          if (totalFinal === 0) {
+            totalFinal = totalCostoServicio + sumatoriaInsumos;
+          }
           
           return {
             ...cost,

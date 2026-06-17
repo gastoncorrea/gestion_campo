@@ -161,33 +161,58 @@
                 </div>
             </div>
 
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Fecha de Labor</label>
-                    <input type="date" class="form-control" formControlName="fecha">
+            <div class="card mb-4 border-warning shadow-sm">
+                <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold">
+                    <fa-icon [icon]="faExclamationTriangle" class="me-2" /> 
+                    Información Económica Requerida
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Moneda</label>
-                    <select class="form-select" formControlName="moneda" (change)="cambiarMonedaLabor()">
-                        <option value="ARS">Pesos (ARS)</option>
-                        <option value="USD">Dólares (USD)</option>
-                    </select>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Moneda <span class="text-danger">*</span></label>
+                            <select class="form-select" 
+                                    [class.is-invalid]="laborForm.get('moneda')?.invalid && laborForm.get('moneda')?.touched"
+                                    formControlName="moneda" 
+                                    (change)="cambiarMonedaLabor()">
+                                <option value="ARS">Pesos (ARS)</option>
+                                <option value="USD">Dólares (USD)</option>
+                            </select>
+                            <div class="invalid-feedback">Debe seleccionar una moneda.</div>
+                        </div>
+
+                        @if (laborForm.get('moneda')?.value === 'USD') {
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Tipo de Cambio <span class="text-danger">*</span></label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   [class.is-invalid]="laborForm.get('cotizacion_moneda')?.invalid && laborForm.get('cotizacion_moneda')?.touched"
+                                   formControlName="cotizacion_moneda" 
+                                   (input)="cambiarMonedaLabor()">
+                            <div class="invalid-feedback">Ingrese un tipo de cambio válido (> 0).</div>
+                        </div>
+                        }
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-success">Costo Servicio (Unit.) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success text-white border-success">{{laborForm.get('moneda')?.value}}</span>
+                                <input type="number" 
+                                       class="form-control border-success" 
+                                       [class.is-invalid]="laborForm.get('costo_servicio')?.invalid && laborForm.get('costo_servicio')?.touched"
+                                       formControlName="costo_servicio" 
+                                       (input)="calcularTotales()"
+                                       placeholder="0.00">
+                                <div class="invalid-feedback">El costo debe ser mayor a cero.</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                @if (laborForm.get('moneda')?.value === 'USD') {
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Tipo de Cambio</label>
-                    <input type="number" class="form-control" formControlName="cotizacion_moneda" (input)="cambiarMonedaLabor()">
-                </div>
-                }
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-4">
-                    <label class="form-label fw-bold text-success">Costo Servicio (Unit.)</label>
-                    <div class="input-group">
-                        <span class="input-group-text">{{laborForm.get('moneda')?.value}}</span>
-                        <input type="number" class="form-control" formControlName="costo_servicio" (input)="calcularTotales()">
-                    </div>
+                    <label class="form-label fw-bold">Fecha de Labor <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" formControlName="fecha">
                 </div>
             </div>
 

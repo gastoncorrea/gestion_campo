@@ -36,7 +36,25 @@ export class CostoLaboresService {
           const obj: any = {};
 
           headers.forEach((header: string, index: number) => {
-            obj[header] = row[index] ?? '';
+            const val = row[index] ?? '';
+            // Normalizar el header: minúsculas, sin acentos, espacios por guiones bajos
+            const normalizedKey = header.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/\s+/g, '_').trim();
+            
+            // Mapeos específicos
+            if (normalizedKey === 'id_ot' || normalizedKey === 'ot_id') {
+                obj['id_ot'] = val;
+            } else if (normalizedKey === 'id_labor' || normalizedKey === 'labor_id') {
+                obj['id_labor'] = val;
+            } else if (normalizedKey === 'costo_total' || normalizedKey === 'total') {
+                obj['total'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            
+            // Mantener original
+            obj[header] = val;
           });
           return obj;
         })
