@@ -168,15 +168,15 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Moneda</label>
-                    <select class="form-select" formControlName="moneda" (change)="calcularTotales()">
+                    <select class="form-select" formControlName="moneda" (change)="cambiarMonedaLabor()">
                         <option value="ARS">Pesos (ARS)</option>
                         <option value="USD">Dólares (USD)</option>
                     </select>
                 </div>
                 @if (laborForm.get('moneda')?.value === 'USD') {
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Cotización Moneda</label>
-                    <input type="number" class="form-control" formControlName="cotizacion_moneda" (input)="calcularTotales()">
+                    <label class="form-label fw-bold">Tipo de Cambio</label>
+                    <input type="number" class="form-control" formControlName="cotizacion_moneda" (input)="cambiarMonedaLabor()">
                 </div>
                 }
             </div>
@@ -209,7 +209,7 @@
                             <td class="text-end">{{item.get('cantidad')?.value}}</td>
                             <td>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{laborForm.get('moneda')?.value}}</span>
                                     <input type="number" class="form-control text-end" 
                                            formControlName="costo_utilizado" 
                                            (input)="calcularTotales()">
@@ -251,7 +251,7 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <button type="button" class="btn btn-outline-secondary px-4" (click)="mostrarModal.set(false)" [disabled]="cargando()">Cancelar</button>
-                <button type="submit" class="btn btn-success px-4 fw-bold" [disabled]="cargando()">
+                <button type="submit" class="btn btn-success px-4 fw-bold" [disabled]="laborForm.invalid || cargando()">
                     {{ cargando() ? 'Procesando...' : 'Confirmar y Guardar Labor' }}
                 </button>
             </div>

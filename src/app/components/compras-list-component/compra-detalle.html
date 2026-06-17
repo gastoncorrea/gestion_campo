@@ -6,7 +6,7 @@
                 <th>Producto</th>
                 <th>Precio Unit.</th>
                 <th>Impuesto (%)</th>
-                <th>Total</th>
+                <th>Subtotal</th>
             </tr>
         </thead>
         <tbody>
@@ -15,7 +15,7 @@
                 <td>{{item.producto}}</td>
                 <td>{{item.precio | number:'1.2-2'}}</td>
                 <td>{{item.impuesto}}%</td>
-                <td>{{item.total | number:'1.2-2'}}</td>
+                <td>{{item.subtotal | number:'1.2-2'}}</td>
             </tr>
             } @empty {
             <tr>

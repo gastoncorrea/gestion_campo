@@ -15,24 +15,28 @@
         <thead>
             <tr>
                 <th>ID Compra</th>
-                <th>ID Remito</th>
+                <th>Nro Remito</th>
                 <th>Fecha</th>
                 <th>Proveedor</th>
                 <th>Moneda</th>
+                <th>Tipo de Cambio</th>
+                <th>Total</th>
             </tr>
         </thead>
         <tbody>
             @for (compra of compras(); track $index) {
             <tr class="fila-principal" (click)="seleccionarCompra($event, compra)">
                 <td>{{compra['id_compra']}}</td>
-                <td>{{compra['Nro Remito']}}</td>
+                <td>{{compra['nro_remito']}}</td>
                 <td>{{compra['fecha']}}</td>
                 <td>{{compra['proveedor']}}</td>
                 <td>{{compra['moneda']}}</td>
+                <td>{{compra['tipo_cambio']}}</td>
+                <td>{{compra['costo_remito']}}</td>
             </tr>
             @if (esCompraSeleccionada(compra)) {
             <tr>
-                <td colspan="5" class="p-0">
+                <td colspan="7" class="p-0">
                     <app-compra-detalle [detalles]="detalles_compra()"></app-compra-detalle>
                 </td>
             </tr>

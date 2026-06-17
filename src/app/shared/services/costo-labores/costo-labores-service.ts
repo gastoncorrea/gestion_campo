@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { map, Observable } from 'rxjs';
 import { CostoLaboresDetalleService } from './costo-labores-detalle-service';
+import { CostoLabor } from '../../models/costo-labor';
+import { DetalleLabor } from '../../models/detalle-labor';
 
 @Injectable({
   providedIn: 'root',
@@ -42,25 +44,23 @@ export class CostoLaboresService {
     )
   }
 
-  crearCostoLabor(data: any): Observable<any> {
+  crearCostoLabor(data: { costoLabor: CostoLabor, detalles: DetalleLabor[] }): Observable<any> {
     const payload = {
       action: 'guardarCostoLabor',
       data: {
         costoLabor: {
-          id_labor: data.id_labor,
-          id_ot: data.id_ot,
-          fecha: data.fecha,
-          moneda: data.moneda,
-          cotizacion_moneda: data.cotizacion_moneda,
-          costo_servicio: data.costo_servicio,
-          total_servicio_ot: data.total_servicio_ot,
-          total_insumos: data.total_insumos,
-          total: data.total,
-          totalArs: data.total_ars
+          id_labor: data.costoLabor.id_labor,
+          id_ot: data.costoLabor.id_ot,
+          fecha: data.costoLabor.fecha,
+          moneda: data.costoLabor.moneda,
+          cotizacion_moneda: data.costoLabor.cotizacion_moneda,
+          costo_servicio: data.costoLabor.costo_servicio,
+          total_servicio_ot: data.costoLabor.total_servicio_ot,
+          total: data.costoLabor.total
         },
-        detalle: data.detalles.map((item: any) => ({
+        detalle: data.detalles.map((item: DetalleLabor) => ({
+          id_labor: item.id_labor,
           id_det_labor: item.id_det_labor,
-          id_labor: data.id_labor,
           producto: item.producto,
           cantidad: item.cantidad,
           costo_sugerido: item.costo_sugerido,

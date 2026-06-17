@@ -33,18 +33,27 @@ export class RemitoDetalleService {
           const obj: any = {};
 
           headers.forEach((header: string, index: number) => {
-            obj[header] = fila[index] ?? '';
+            const val = fila[index] ?? '';
+            const normalizedKey = header.toLowerCase().replace(/\s+/g, '_').trim();
+            
+            if (normalizedKey === 'nro_remito' || normalizedKey === 'id_rem') {
+                obj['nro_remito'] = val;
+            } else if (normalizedKey === 'cantidad' || normalizedKey === 'cant') {
+                obj['cantidad'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            obj[header] = val;
           });
 
           return obj;
         });
 
-        console.log('Detalle remito - Headers encontrados:', headers);
+        console.log('Detalle remito - Headers normalizados');
         console.log('Buscando coincidencia para:', id);
 
         const filtrados = objetos.filter(item => {
-          // Buscamos en cualquier columna que pueda ser el ID de vinculación
-          const val = item['Nro Remito'];
+          const val = item.nro_remito || item['Nro Remito'];
           return val && String(val).trim() === String(id).trim();
         });
 
@@ -69,7 +78,17 @@ export class RemitoDetalleService {
         return filas.slice(1).map((fila: any[]) => {
           const obj: any = {};
           headers.forEach((header: string, index: number) => {
-            obj[header] = fila[index] ?? '';
+            const val = fila[index] ?? '';
+            const normalizedKey = header.toLowerCase().replace(/\s+/g, '_').trim();
+            
+            if (normalizedKey === 'nro_remito' || normalizedKey === 'id_rem') {
+                obj['nro_remito'] = val;
+            } else if (normalizedKey === 'cantidad' || normalizedKey === 'cant') {
+                obj['cantidad'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            obj[header] = val;
           });
           return obj;
         });

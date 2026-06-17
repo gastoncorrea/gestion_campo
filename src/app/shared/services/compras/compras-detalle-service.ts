@@ -28,7 +28,19 @@ export class CompraDetalleService {
         return filas.slice(1).map((fila: any[]) => {
           const obj: any = {};
           headers.forEach((header: string, index: number) => {
-            obj[header] = fila[index] ?? '';
+            const val = fila[index] ?? '';
+            const normalizedKey = header.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/\s+/g, '_').trim();
+            
+            if (normalizedKey === 'subtotal' || normalizedKey === 'total') {
+                obj['subtotal'] = val;
+            } else if (normalizedKey === 'id_det_rem' || normalizedKey === 'id_rem') {
+                obj['id_det_rem'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            obj[header] = val;
           });
           return obj;
         });

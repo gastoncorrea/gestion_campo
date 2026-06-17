@@ -73,7 +73,7 @@
                     </div>
                     @if (compraForm.get('moneda')?.value === 'USD') {
                     <div class="col-md-6">
-                        <label class="form-label">Cotización Moneda</label>
+                        <label class="form-label">Tipo de Cambio</label>
                         <input type="number" class="form-control" formControlName="cotizacion_moneda" (input)="calcularTotal()">
                     </div>
                     }
@@ -105,7 +105,7 @@
                                         <option [value]="27">27%</option>
                                     </select>
                                 </td>
-                                <td>{{item.get('total')?.value}}</td>
+                                <td>{{item.get('subtotal')?.value}}</td>
                             </tr>
                             }
                         </tbody>
@@ -113,7 +113,7 @@
                 </div>
 
                 <div class="text-end mb-3">
-                    <h4>Total ({{compraForm.get('moneda')?.value}}): {{compraForm.get('total')?.value}}</h4>
+                    <h4>Total ({{compraForm.get('moneda')?.value}}): {{compraForm.get('total_remito')?.value}}</h4>
                     @if (compraForm.get('moneda')?.value === 'USD') {
                         <h4 class="text-success">Total ARS: {{compraForm.get('total_ars')?.value}}</h4>
                     }

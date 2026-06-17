@@ -33,13 +33,25 @@ export class OrdenDetalleService {
           const obj: any = {};
 
           headers.forEach((header: string, index: number) => {
-            obj[header] = fila[index] ?? '';
+            const val = fila[index] ?? '';
+            const normalizedKey = header.toLowerCase().replace(/\s+/g, '_').trim();
+            
+            if (normalizedKey === 'ot_id' || normalizedKey === 'id_ot') {
+                obj['ot_id'] = val;
+            } else if (normalizedKey === 'producto' || normalizedKey === 'prod') {
+                obj['producto'] = val;
+            } else if (normalizedKey === 'total' || normalizedKey === 'cant') {
+                obj['total'] = val;
+            } else {
+                obj[normalizedKey] = val;
+            }
+            obj[header] = val;
           });
 
           return obj;
         });
 
-        return objetos.filter(item => item['OT_ID'] === id);
+        return objetos.filter(item => (item.ot_id || item['OT_ID']) === id);
       })
     );
   }

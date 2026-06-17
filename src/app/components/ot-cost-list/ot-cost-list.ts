@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -12,8 +12,10 @@ import { CompraDetalleService } from '../../shared/services/compras/compras-deta
 import { RemitoDetalleService } from '../../shared/services/remito/remito-detalle-service';
 import { OrdenTrabajoDetalle } from '../orden-trabajo-detalle/orden-trabajo-detalle';
 import { CostoLaboresDetalle } from '../costo-labores-detalle/costo-labores-detalle';
-import { catchError, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Compras } from '../../shared/services/compras/compras';
+import { DetalleLabor } from '../../shared/models/detalle-labor';
 
 @Component({
   selector: 'app-ot-cost-list',
@@ -22,13 +24,14 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
   templateUrl: './ot-cost-list.html',
   styleUrl: './ot-cost-list.scss',
 })
-export class OtCostList {
+export class OtCostList implements OnInit {
   private costoLaboresService = inject(CostoLaboresService);
   private ordenTrabajoService = inject(OrdenTrabajo);
   private ordenDetalleService = inject(OrdenDetalleService);
   private costoLaboresDetalleService = inject(CostoLaboresDetalleService);
   private compraDetalleService = inject(CompraDetalleService);
   private remitoDetalleService = inject(RemitoDetalleService);
+  private comprasService = inject(Compras);
   private fb = inject(FormBuilder);
 
   faPlus = faPlus;
@@ -50,6 +53,20 @@ export class OtCostList {
   cargando = signal(false);
   laborForm!: FormGroup;
 
+  private lastMoneda = 'ARS';
+  private lastCotizacion = 1;
+  
+  // Estructura para guardar datos base de compras por producto
+  ponderadosBase: { 
+    [producto: string]: { 
+        totalMontoARS: number; 
+        totalMontoUSD: number; 
+        totalMontoUSD_a_ARS: number; 
+        totalCant: number;
+        compras: any[]; 
+    } 
+  } = {};
+
   ngOnInit(): void {
     this.cargarDatos();
   }
@@ -69,25 +86,20 @@ export class OtCostList {
       )
     }).subscribe({
       next: ({ costos, ordenes, detallesCostos }: { costos: any[], ordenes: any[], detallesCostos: any[] }) => {
-        // Enriquecer y calcular costos
         const costosCalculados = costos.map(cost => {
-          const orden = ordenes.find(ot => String(ot.OT_ID).trim() === String(cost.id_ot).trim());
+          const idOt = String(cost.id_ot).trim();
+          const orden = ordenes.find(ot => String(ot.OT_ID).trim() === idOt);
           const cantidad = orden ? Number(orden.CANTIDAD) || 0 : 0;
           const lote = orden ? orden.LOTE : (cost.lote || ''); 
           
-          // Nombres de campos según el usuario: costo_servicio, total_costo_ot
           const costoServicioUnitario = Number(cost.costo_servicio) || 0; 
-          const totalCostoOt = Number(cost.total_costo_ot) || 0;
+          const totalFinal = Number(cost.total) || 0;
           
           const totalCostoServicio = cantidad * costoServicioUnitario;
 
-          // Calcular sumatoria de insumos para esta labor
           const detallesDeEstaLabor = detallesCostos.filter((d: any) => String(d.id_labor).trim() === String(cost.id_labor).trim());
           const sumatoriaInsumos = detallesDeEstaLabor.reduce((acc: number, d: any) => acc + (Number(d.costo_total) || 0), 0);
           
-          // Si total_costo_ot no viene del backend, lo calculamos para mostrar consistencia
-          const totalCalculado = totalCostoOt || (totalCostoServicio + sumatoriaInsumos);
-
           return {
             ...cost,
             cantidad,
@@ -95,7 +107,7 @@ export class OtCostList {
             costo_servicio_unitario: costoServicioUnitario,
             total_costo_servicio: totalCostoServicio,
             total_insumos_calculado: sumatoriaInsumos,
-            total_final: totalCalculado
+            total_final: totalFinal
           };
         });
 
@@ -146,41 +158,88 @@ export class OtCostList {
 
     this.cargando.set(true);
     const cantidadOt = Number(ot.CANTIDAD) || 0;
+    this.lastMoneda = 'ARS';
+    this.lastCotizacion = 1;
 
-    // Obtener detalles de compras y remitos para calcular costos ponderados reales
+    console.log('--- Iniciando cálculo de ponderados con trazabilidad de Compras ---');
+
     forkJoin({
-      compras: this.compraDetalleService.obtenerTodosLosDetalles(),
+      comprasHeaders: this.comprasService.obtenerCompras(),
+      comprasDetalles: this.compraDetalleService.obtenerTodosLosDetalles(),
       remitosDetalles: this.remitoDetalleService.obtenerTodosLosDetalles()
     }).subscribe({
-      next: ({ compras, remitosDetalles }) => {
-        const costosPonderados: { [producto: string]: number } = {};
+      next: ({ comprasHeaders, comprasDetalles, remitosDetalles }) => {
+        const base: typeof this.ponderadosBase = {};
         
-        // Unir datos: necesitamos la cantidad del remito y el precio de la compra
-        const comprasEnriquecidas = compras.map(c => {
-          const remitoItem = remitosDetalles.find(r => String(r['Id_detalle']).trim() === String(c['id_det_rem']).trim());
-          return {
-            ...c,
-            // Priorizamos la cantidad del remito vinculado
-            cantidad_real: remitoItem ? (Number(remitoItem['Cantidad']) || 0) : 0,
-            // El usuario dice que el costo está en 'precio' (o 'Costo un' según el mensaje anterior)
-            precio_real: Number(c['precio']) || Number(c['Costo un']) || 0
-          };
+        comprasDetalles.forEach(cd => {
+          const cdIdCompra = String(cd.id_compra || '').trim();
+          // RELACIÓN: Buscamos el header de la compra para obtener "moneda" y "tipo de cambio"
+          const header = comprasHeaders.find(h => 
+            String(h.id_compra || h['id_compra'] || h['ID Compra'] || '').trim() === cdIdCompra
+          );
+          
+          if (!header) {
+            console.warn(`No se encontró el encabezado para la compra ID: ${cdIdCompra}`);
+          }
+
+          const cdIdDetRem = String(cd.id_det_rem || '').trim();
+          const remitoItem = remitosDetalles.find(r => 
+            String(r.id_detalle || r['id_detalle'] || r['ID Detalle'] || '').trim() === cdIdDetRem
+          );
+          
+          // Obtener cotización y moneda de forma robusta
+          const cotizacionCompra = header ? Number(header.cotizacion_moneda || header['cotizacion_moneda'] || header['tipo_de_cambio'] || header['tipo_cambio'] || header['cotizacion'] || 1) : 1;
+          const monedaCompraRaw = (header?.moneda || header?.['moneda'] || 'ARS').toString().toUpperCase();
+          const monedaCompra = (monedaCompraRaw.includes('USD') || monedaCompraRaw.includes('U$S') || monedaCompraRaw.includes('DOLAR')) ? 'USD' : 'ARS';
+
+          if (monedaCompra === 'USD' && cotizacionCompra === 1 && header) {
+            console.log(`[ALERTA] Compra USD con Cotización 1. Verificando objeto header:`, header);
+          }
+
+          const precioUnitario = Number(cd.precio || 0);
+          const cantidad = remitoItem ? Number(remitoItem.cantidad || remitoItem['cantidad'] || 0) : 0;
+          const prodNombre = String(cd.producto || '').trim().toUpperCase();
+
+          if (!prodNombre || cantidad <= 0) return;
+
+          if (!base[prodNombre]) {
+            base[prodNombre] = { totalMontoARS: 0, totalMontoUSD: 0, totalMontoUSD_a_ARS: 0, totalCant: 0, compras: [] };
+          }
+
+          // GUARDAMOS LA RELACIÓN COMPLETA
+          base[prodNombre].compras.push({
+            compra_id: cdIdCompra,
+            moneda: monedaCompra,
+            cotizacion: cotizacionCompra,
+            precio_original: precioUnitario,
+            cantidad: cantidad
+          });
+
+          if (monedaCompra === 'USD') {
+            // SI ES USD: precio = tipo_cambio * precio (Convertimos a pesos para el ponderado)
+            const precioEnPesos = precioUnitario * cotizacionCompra;
+            const montoConvertido = precioEnPesos * cantidad;
+            
+            base[prodNombre].totalMontoUSD += precioUnitario * cantidad;
+            base[prodNombre].totalMontoUSD_a_ARS += montoConvertido;
+            
+            console.log(`[PRUEBA USD] Producto: ${prodNombre}`);
+            console.log(`  > Compra ID: ${cdIdCompra}, Moneda: USD, Cotiz: ${cotizacionCompra}`);
+            console.log(`  > Precio Unit (USD): ${precioUnitario} -> Precio Unit (ARS): ${precioEnPesos.toFixed(2)}`);
+            console.log(`  > Monto Total ARS: ${montoConvertido.toFixed(2)}`);
+          } else {
+            // SI ES ARS: usamos el precio directo
+            const montoARS = precioUnitario * cantidad;
+            base[prodNombre].totalMontoARS += montoARS;
+            
+            console.log(`[PRUEBA ARS] Producto: ${prodNombre}`);
+            console.log(`  > Compra ID: ${cdIdCompra}, Moneda: ARS, Precio Unit: ${precioUnitario}`);
+            console.log(`  > Monto Total ARS: ${montoARS.toFixed(2)}`);
+          }
+          base[prodNombre].totalCant += cantidad;
         });
 
-        // Agrupar por producto (normalizado a mayúsculas)
-        const comprasPorProducto = comprasEnriquecidas.reduce((acc, curr) => {
-          const prod = String(curr.producto || '').trim().toUpperCase();
-          if (!acc[prod]) acc[prod] = [];
-          acc[prod].push(curr);
-          return acc;
-        }, {} as { [key: string]: any[] });
-
-        // Calcular ponderado real: Suma(precio * cantidad) / Suma(cantidad)
-        Object.keys(comprasPorProducto).forEach(prod => {
-          const totalMonto = comprasPorProducto[prod].reduce((s: number, c: any) => s + (c.precio_real * c.cantidad_real), 0);
-          const totalCant = comprasPorProducto[prod].reduce((s: number, c: any) => s + c.cantidad_real, 0);
-          costosPonderados[prod] = totalCant > 0 ? totalMonto / totalCant : 0;
-        });
+        this.ponderadosBase = base;
 
         this.laborForm = this.fb.group({
           id_labor: ['LAB' + Date.now()],
@@ -189,28 +248,34 @@ export class OtCostList {
           servicio: [{ value: ot.SERVICIO, disabled: true }],
           contratista: [{ value: ot.PROVEEDOR, disabled: true }],
           cantidad_ot: [{ value: cantidadOt, disabled: true }],
-          fecha: ['', Validators.required],
-          costo_servicio: [0, [Validators.required, Validators.min(0)]],
-          moneda: ['ARS', Validators.required],
-          cotizacion_moneda: [1, [Validators.min(1)]],
+          fecha: [new Date().toISOString().split('T')[0], [Validators.required]],
+          costo_servicio: [0, [Validators.required, Validators.min(0.01)]],
+          moneda: ['ARS', [Validators.required]],
+          cotizacion_moneda: [1, [Validators.required, Validators.min(1)]],
           total_servicio_ot: [0],
           total_insumos: [0],
           total_final: [0],
           total_final_ars: [0],
           detalles: this.fb.array(this.detalle_orden().map(d => {
-            const prodNombre = String(d.PRODUCTO || '').trim().toUpperCase();
-            const costoSugerido = costosPonderados[prodNombre] || 0;
-            const cantidad = Number(d.TOTAL) || 0;
+            const prodNombre = String(d.producto).trim().toUpperCase();
+            const dataProd = base[prodNombre];
+            const cantidadNecesaria = Number(d.total || 0);
+
+            let costoInicialSugerido = 0;
+            if (dataProd && dataProd.totalCant > 0) {
+                costoInicialSugerido = (dataProd.totalMontoARS + dataProd.totalMontoUSD_a_ARS) / dataProd.totalCant;
+            }
 
             return this.fb.group({
-              producto: [d.PRODUCTO],
-              cantidad: [cantidad],
-              costo_utilizado: [costoSugerido, [Validators.required, Validators.min(0)]],
-              costo_total_producto: [cantidad * costoSugerido]
+              producto: [d.producto, [Validators.required]],
+              cantidad: [cantidadNecesaria, [Validators.required, Validators.min(0.0001)]],
+              costo_utilizado: [Number(costoInicialSugerido.toFixed(2)), [Validators.required, Validators.min(0.01)]],
+              costo_total_producto: [Number((cantidadNecesaria * costoInicialSugerido).toFixed(2))]
             });
           }))
         });
-
+        
+        this.laborForm.updateValueAndValidity();
         this.calcularTotales();
         this.cargando.set(false);
         this.mostrarModal.set(true);
@@ -227,62 +292,137 @@ export class OtCostList {
     return this.laborForm.get('detalles') as FormArray;
   }
 
+  cambiarMonedaLabor(): void {
+    const formRaw = this.laborForm.getRawValue();
+    const nuevaMoneda = formRaw.moneda;
+    const nuevaCotizacion = Number(formRaw.cotizacion_moneda) || 1;
+    const cotizacionValida = nuevaCotizacion > 0 ? nuevaCotizacion : 1;
+
+    console.log(`--- Recalculando por cambio de Moneda/Cotización: ${this.lastMoneda} -> ${nuevaMoneda} (Cotiz: ${cotizacionValida}) ---`);
+
+    // 1. Convertir Costo de Servicio (este sí es un valor ingresado que se escala)
+    let costoServicio = Number(formRaw.costo_servicio) || 0;
+    if (this.lastMoneda === 'ARS' && nuevaMoneda === 'USD') {
+      costoServicio = costoServicio / cotizacionValida;
+    } else if (this.lastMoneda === 'USD' && nuevaMoneda === 'ARS') {
+      costoServicio = costoServicio * this.lastCotizacion;
+    } else if (this.lastMoneda === 'USD' && nuevaMoneda === 'USD' && this.lastCotizacion !== cotizacionValida) {
+      costoServicio = (costoServicio * this.lastCotizacion) / cotizacionValida;
+    }
+    this.laborForm.get('costo_servicio')?.setValue(Number(Math.max(0, costoServicio).toFixed(2)), { emitEvent: false });
+
+    // 2. Recalcular Insumos desde la Base de Compras (Ponderado Real)
+    this.detallesForm.controls.forEach((group) => {
+      const prodNombre = String(group.get('producto')?.value || '').trim().toUpperCase();
+      const dataProd = this.ponderadosBase[prodNombre];
+      
+      if (!dataProd || dataProd.totalCant === 0) return;
+
+      let nuevoCostoSugerido = 0;
+      if (nuevaMoneda === 'ARS') {
+        // Ponderado en Pesos: (MontoARS + MontoUSD*CotizCompra) / Cantidad
+        nuevoCostoSugerido = (dataProd.totalMontoARS + dataProd.totalMontoUSD_a_ARS) / dataProd.totalCant;
+      } else {
+        // Ponderado en Dólares: (MontoUSD + MontoARS/CotizActual) / Cantidad
+        // Esto hace que si la compra fue en USD 2, se mantenga en USD 2
+        const montoARSenUSD = dataProd.totalMontoARS / cotizacionValida;
+        nuevoCostoSugerido = (dataProd.totalMontoUSD + montoARSenUSD) / dataProd.totalCant;
+      }
+      
+      console.log(`  Prod: ${prodNombre}, Nuevo Sugerido (${nuevaMoneda}): ${nuevoCostoSugerido.toFixed(2)}`);
+      group.get('costo_utilizado')?.setValue(Number(Math.max(0, nuevoCostoSugerido).toFixed(2)), { emitEvent: false });
+    });
+
+    this.lastMoneda = nuevaMoneda;
+    this.lastCotizacion = cotizacionValida;
+    this.calcularTotales();
+  }
+
   calcularTotales(): void {
-    const costoServicio = this.laborForm.get('costo_servicio')?.value || 0;
-    const ot = this.pendingOts().find(o => String(o.OT_ID).trim() === String(this.laborForm.get('id_ot')?.value).trim());
+    const formRaw = this.laborForm.getRawValue();
+    const costoServicio = Number(formRaw.costo_servicio) || 0;
+    const otId = String(formRaw.id_ot).trim();
+    const ot = this.pendingOts().find(o => String(o.OT_ID).trim() === otId);
     const cantidadOt = ot ? Number(ot.CANTIDAD) || 0 : 0;
     
     const totalServicio = costoServicio * cantidadOt;
+    const monedaLabor = formRaw.moneda;
+    const cotizacionLabor = Number(formRaw.cotizacion_moneda) || 1;
     
     let totalInsumos = 0;
-    this.detallesForm.controls.forEach((group, index) => {
-      const cantidad = group.get('cantidad')?.value || 0;
-      const costoUtilizado = group.get('costo_utilizado')?.value || 0;
+    this.detallesForm.controls.forEach((group) => {
+      const cantidad = Number(group.get('cantidad')?.value) || 0;
+      const costoUtilizado = Number(group.get('costo_utilizado')?.value) || 0;
+      
       const totalProducto = cantidad * costoUtilizado;
-      group.get('costo_total_producto')?.setValue(totalProducto, { emitEvent: false });
+      group.get('costo_total_producto')?.setValue(Number(totalProducto.toFixed(2)));
       totalInsumos += totalProducto;
     });
 
     const totalFinal = totalServicio + totalInsumos;
-    const cotizacion = this.laborForm.get('cotizacion_moneda')?.value || 1;
-    const totalFinalArs = this.laborForm.get('moneda')?.value === 'USD' ? totalFinal * cotizacion : totalFinal;
+    const totalFinalArs = monedaLabor === 'USD' ? totalFinal * cotizacionLabor : totalFinal;
 
     this.laborForm.patchValue({
-      total_servicio_ot: totalServicio,
-      total_insumos: totalInsumos,
-      total_final: totalFinal,
-      total_final_ars: totalFinalArs
-    }, { emitEvent: false });
+      total_servicio_ot: totalServicio.toFixed(2),
+      total_insumos: totalInsumos.toFixed(2),
+      total_final: totalFinal.toFixed(2),
+      total_final_ars: totalFinalArs.toFixed(2)
+    });
   }
 
   guardarLabor(): void {
     if (this.laborForm.invalid) {
-      alert('Por favor complete todos los campos.');
+      console.warn('Formulario inválido al intentar guardar:', this.laborForm.errors);
+      return;
+    }
+
+    const formValue = this.laborForm.getRawValue();
+
+    // Validaciones de seguridad por si el botón no se bloqueó a tiempo
+    if (Number(formValue.costo_servicio) <= 0) {
+      alert('El costo del servicio debe ser mayor a cero.');
+      return;
+    }
+
+    const tieneInsumosSinCosto = formValue.detalles.some((d: any) => Number(d.costo_utilizado) <= 0);
+    if (tieneInsumosSinCosto) {
+      alert('Todos los insumos deben tener un costo definido mayor a cero.');
       return;
     }
 
     this.cargando.set(true);
-    const formValue = this.laborForm.getRawValue();
+    const idLabor = formValue.id_labor;
 
     const data = {
-      id_labor: formValue.id_labor,
-      id_ot: formValue.id_ot,
-      fecha: formValue.fecha,
-      moneda: formValue.moneda,
-      cotizacion_moneda: formValue.cotizacion_moneda,
-      costo_servicio: formValue.costo_servicio, // Costo unitario
-      total_servicio_ot: formValue.total_servicio_ot, // Costo total del servicio (cant * unitario)
-      total_insumos: formValue.total_insumos,
-      total: formValue.total_final,
-      total_ars: formValue.total_final_ars,
-      detalles: formValue.detalles.map((d: any) => ({
-        id_det_labor: 'DET' + Date.now() + Math.floor(Math.random() * 1000),
-        producto: d.producto,
-        cantidad: d.cantidad,
-        costo_sugerido: 0, 
-        costo_utilizado: d.costo_utilizado,
-        costo_total: d.costo_total_producto
-      }))
+      costoLabor: {
+        id_labor: idLabor,
+        id_ot: formValue.id_ot,
+        fecha: formValue.fecha,
+        moneda: formValue.moneda,
+        cotizacion_moneda: formValue.cotizacion_moneda,
+        costo_servicio: formValue.costo_servicio,
+        total_servicio_ot: formValue.total_servicio_ot,
+        total: formValue.total_final
+      },
+      detalles: formValue.detalles.map((d: any) => {
+        const prodNombre = String(d.producto || '').trim().toUpperCase();
+        const dataProd = this.ponderadosBase[prodNombre];
+        
+        let sugeridoARS = 0;
+        if (dataProd && dataProd.totalCant > 0) {
+            sugeridoARS = (dataProd.totalMontoARS + dataProd.totalMontoUSD_a_ARS) / dataProd.totalCant;
+        }
+
+        return {
+            id_labor: idLabor,
+            id_det_labor: 'DET' + Date.now() + Math.floor(Math.random() * 1000),
+            producto: d.producto,
+            cantidad: d.cantidad,
+            costo_sugerido: Number(sugeridoARS.toFixed(2)), 
+            costo_utilizado: d.costo_utilizado,
+            costo_total: d.costo_total_producto
+        } as DetalleLabor;
+      })
     };
 
     this.costoLaboresService.crearCostoLabor(data).subscribe({
