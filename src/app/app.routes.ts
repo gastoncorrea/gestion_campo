@@ -4,6 +4,7 @@ import { Home } from './pages/home/home';
 import { RemitoListComponent } from './components/remito-list-component/remito-list-component';
 import { OtCostList } from './components/ot-cost-list/ot-cost-list';
 import { ComprasListComponent } from './components/compras-list-component/compras-list-component';
+import { LoteViewComponent } from './components/lote/lote-view-component/lote-view-component';
 
 export const routes: Routes = [
     {
@@ -25,5 +26,9 @@ export const routes: Routes = [
     {
         path: 'compras',
         component: ComprasListComponent
+    },
+    {
+        path: 'lotes',
+        component: LoteViewComponent
     }
 ];
