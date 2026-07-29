@@ -6,4 +6,7 @@ import { Component } from '@angular/core';
   templateUrl: './lote-view-component.html',
   styleUrl: './lote-view-component.scss',
 })
-export class LoteViewComponent {}
+export class LoteViewComponent {
+
+//Usar Leaflet
+}
