@@ -1,11 +1,11 @@
 export interface Campo {
   id_campo?: string;
   nombre: string;
-  ubicacion: string;
+  propietario?: string;
   provincia?: string;
   localidad?: string;
-  superficie_total_ha?: number;
-  propietario?: string;
+  ubicacion: string;
+  superficie_ha?: number;
   latitud?: number;
   longitud?: number;
   coordenadas_json?: string;

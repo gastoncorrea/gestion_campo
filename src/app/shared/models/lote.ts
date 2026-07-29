@@ -1,6 +1,6 @@
 export interface Lote {
   id_lote?: string;
-  id_campo: string;
+  campo_id: string;
   nombre_lote: string;
   superfice_ha: number;
   latitud: number;
