@@ -3,7 +3,7 @@ export interface Lote {
   campo_id: string;
   nombre_lote: string;
   superficie_ha: number;
-  latitud: string;
-  longitud: string;
+  latitud: number;
+  longitud: number;
   coordenadas_geojson: any;
 }
