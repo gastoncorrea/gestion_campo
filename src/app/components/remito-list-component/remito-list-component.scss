@@ -27,12 +27,19 @@ thead th {
 .fila-principal{
     cursor: pointer;
 }
-.table tbody tr.estado-pendiente td {
+.estado-pendiente {
     background-color: #ffcccc !important;
+    color: #842029 !important;
 }
 
-.table tbody tr.estado-parcial td {
+.estado-parcial {
     background-color: #ffffcc !important;
+    color: #664d03 !important;
+}
+
+.estado-completo {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
 }
 
 .ocultar-en-mobile {

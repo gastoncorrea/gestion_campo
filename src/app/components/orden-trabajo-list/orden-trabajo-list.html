@@ -23,6 +23,7 @@
                 <th>Cant.</th>
                 <th class="ocultar-en-mobile">Costo</th>
                 <th class="ocultar-en-mobile">Maq</th>
+                <th>Estado</th>
             </tr>
         </thead>
         <tbody>
@@ -37,10 +38,15 @@
                 <td>{{orden.CANTIDAD}}</td>
                 <td class="ocultar-en-mobile">{{orden.COSTO}}</td>
                 <td class="ocultar-en-mobile">{{orden.MAQUINA}}</td>
+                <td>
+                    <span class="badge" [ngClass]="orden.claseEstado">
+                        {{orden.estado}}
+                    </span>
+                </td>
             </tr>
             @if (otSeleccionada() === orden.OT_ID) {
             <tr>
-                <td colspan="9" class="p-0">
+                <td colspan="10" class="p-0">
                     <app-orden-trabajo-detalle 
                         [detalles]="detalle_orden()" 
                         [otId]="orden.OT_ID"
@@ -57,59 +63,162 @@
             <!-- Modal Generar Labor -->
             @if (mostrarModal()) {
             <div class="modal-overlay">
-            <div class="modal-content p-4">
-            <h3>Generar Costo de Labor - OT #{{ordenParaLabor()?.OT_ID}}</h3>
-            <form [formGroup]="laborForm" (ngSubmit)="guardarLabor()">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" class="form-control" formControlName="fecha">
+                <div class="modal-content p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="m-0">Generar Labor</h2>
+                        <span class="badge bg-primary fs-6">OT #{{laborForm.get('id_ot')?.value}}</span>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Costo Servicio (por unidad)</label>
-                        <input type="number" class="form-control" formControlName="costo_servicio" (input)="calcularTotales()">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Moneda</label>
-                        <select class="form-select" formControlName="moneda" (change)="calcularTotales()">
-                            <option value="ARS">Pesos (ARS)</option>
-                            <option value="USD">Dólares (USD)</option>
-                        </select>
-                    </div>
-                    @if (laborForm.get('moneda')?.value === 'USD') {
-                    <div class="col-md-6">
-                        <label class="form-label">Tipo de Cambio</label>
-                        <input type="number" class="form-control" formControlName="cotizacion_moneda" (input)="calcularTotales()">
-                    </div>
-                    }
-                </div>
 
-                <div class="bg-light p-3 mb-3 border rounded">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Costo Servicio OT ({{ordenParaLabor()?.CANTIDAD}} {{ordenParaLabor()?.UNIDAD}}):</span>
-                        <span class="fw-bold">{{laborForm.get('total_servicio_ot')?.value}}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2 text-muted">
-                        <span>Total Insumos OT:</span>
-                        <span>{{(parseFloat(laborForm.get('total')?.value) - parseFloat(laborForm.get('total_servicio_ot')?.value)).toFixed(2)}}</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <span class="h4">TOTAL:</span>
-                        <span class="h4 text-primary">{{laborForm.get('total')?.value}}</span>
-                    </div>
-                </div>
+                    <form [formGroup]="laborForm" (ngSubmit)="guardarLabor()">
+                        <div class="card mb-4 bg-light border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-3 text-muted uppercase small fw-bold">Referencia de la Orden de Trabajo</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">ID Orden de Trabajo</label>
+                                        <input type="text" class="form-control bg-white border-primary-subtle" formControlName="id_ot">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Lote</label>
+                                        <input type="text" class="form-control bg-white" formControlName="lote">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Servicio</label>
+                                        <input type="text" class="form-control bg-white" formControlName="servicio">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Contratista</label>
+                                        <input type="text" class="form-control bg-white" formControlName="contratista">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold text-primary">Cant. Labor</label>
+                                        <input type="text" class="form-control bg-white border-primary fw-bold text-primary" formControlName="cantidad_ot">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary" (click)="mostrarModal.set(false)" [disabled]="cargando()">Cancelar</button>
-                    <button type="submit" class="btn btn-success" [disabled]="cargando()">
-                        {{ cargando() ? 'Guardando...' : 'Guardar Labor' }}
-                    </button>
+                        <div class="card mb-4 border-warning shadow-sm">
+                            <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold">
+                                <fa-icon [icon]="faExclamationTriangle" class="me-2" /> 
+                                Información Económica Requerida
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Moneda <span class="text-danger">*</span></label>
+                                        <select class="form-select" 
+                                                [class.is-invalid]="laborForm.get('moneda')?.invalid && laborForm.get('moneda')?.touched"
+                                                formControlName="moneda" 
+                                                (change)="cambiarMonedaLabor()">
+                                            <option value="ARS">Pesos (ARS)</option>
+                                            <option value="USD">Dólares (USD)</option>
+                                        </select>
+                                        <div class="invalid-feedback">Debe seleccionar una moneda.</div>
+                                    </div>
+
+                                    @if (laborForm.get('moneda')?.value === 'USD') {
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Tipo de Cambio <span class="text-danger">*</span></label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               [class.is-invalid]="laborForm.get('cotizacion_moneda')?.invalid && laborForm.get('cotizacion_moneda')?.touched"
+                                               formControlName="cotizacion_moneda" 
+                                               (input)="cambiarMonedaLabor()">
+                                        <div class="invalid-feedback">Ingrese un tipo de cambio válido (> 0).</div>
+                                    </div>
+                                    }
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-success">Costo Servicio (Unit.) <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-success text-white border-success">{{laborForm.get('moneda')?.value}}</span>
+                                            <input type="number" 
+                                                   class="form-control border-success" 
+                                                   [class.is-invalid]="laborForm.get('costo_servicio')?.invalid && laborForm.get('costo_servicio')?.touched"
+                                                   formControlName="costo_servicio" 
+                                                   (input)="calcularTotales()"
+                                                   placeholder="0.00">
+                                            <div class="invalid-feedback">El costo debe ser mayor a cero.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Fecha de Labor <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" formControlName="fecha">
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3 border-bottom pb-2">Detalle de Insumos Utilizados</h5>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-end" style="width: 15%;">Cant.</th>
+                                        <th class="text-end" style="width: 25%;">Costo</th>
+                                        <th class="text-end" style="width: 20%;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody formArrayName="detalles">
+                                    @for (item of detallesForm.controls; track $index) {
+                                    <tr [formGroupName]="$index">
+                                        <td class="fw-medium">{{item.get('producto')?.value}}</td>
+                                        <td class="text-end">{{item.get('cantidad')?.value}}</td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">{{laborForm.get('moneda')?.value}}</span>
+                                                <input type="number" class="form-control text-end" 
+                                                       formControlName="costo_utilizado" 
+                                                       (input)="calcularTotales()">
+                                            </div>
+                                        </td>
+                                        <td class="text-end fw-bold">{{item.get('costo_total_producto')?.value | currency:laborForm.get('moneda')?.value}}</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row justify-content-end">
+                            <div class="col-md-5">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted">Total Servicio de Labor:</span>
+                                            <span class="fw-bold">{{laborForm.get('total_servicio_ot')?.value | currency:laborForm.get('moneda')?.value}}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                            <span class="text-muted">Total Insumos:</span>
+                                            <span class="fw-bold">{{laborForm.get('total_insumos')?.value | currency:laborForm.get('moneda')?.value}}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="h5 m-0 fw-bold text-uppercase">Total Orden de Trabajo:</span>
+                                            <span class="h4 m-0 fw-bold text-primary">{{laborForm.get('total_final')?.value | currency:laborForm.get('moneda')?.value}}</span>
+                                        </div>
+                                        @if (laborForm.get('moneda')?.value === 'USD') {
+                                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                            <span class="h6 m-0 fw-bold text-success text-uppercase">Total en Pesos (ARS):</span>
+                                            <span class="h5 m-0 fw-bold text-success">{{laborForm.get('total_final_ars')?.value | currency:'ARS'}}</span>
+                                        </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary px-4" (click)="mostrarModal.set(false)" [disabled]="cargando()">Cancelar</button>
+                            <button type="submit" class="btn btn-success px-4 fw-bold" [disabled]="laborForm.invalid || cargando()">
+                                {{ cargando() ? 'Procesando...' : 'Confirmar y Guardar Labor' }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
-            </div>
             </div>
             }
             </div>

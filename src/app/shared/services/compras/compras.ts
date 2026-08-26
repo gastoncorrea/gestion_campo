@@ -41,7 +41,7 @@ export class Compras {
           });
 
           if (!existeEnCompra) {
-            return { ...remito, estado: 'Pendiente', claseEstado: 'estado-pendiente' };
+            return { ...remito, estado: 'No facturado', claseEstado: 'estado-pendiente' };
           }
 
           const itemsEnDetalleRemito = detallesRemitos.filter(item => {
@@ -63,11 +63,11 @@ export class Compras {
             comprasAsociadasIds.includes(String(itemCompra.id_compra).trim())
           );
 
-          let estado = 'Parcial';
+          let estado = 'Parcialmente facturado';
           let claseEstado = 'estado-parcial';
 
           if (itemsEnDetalleRemito.length > 0 && itemsEnDetalleRemito.length === itemsEnDetalleCompra.length) {
-            estado = 'Completo';
+            estado = 'Facturado';
             claseEstado = 'estado-completo';
           }
 

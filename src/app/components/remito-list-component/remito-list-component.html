@@ -24,13 +24,17 @@
         </thead>
         <tbody>
             @for (remito of remitos(); track $index) {
-            <tr class="fila-principal" (click)="seleccionarRemito($event, remito)" [ngClass]="remito.estado === 'Completo' ? '' : remito.claseEstado">
+            <tr class="fila-principal" (click)="seleccionarRemito($event, remito)">
                 <td>{{remito.Re_id}}</td>
                 <td>{{remito['Nro Remito']}}</td>
                 <td>{{remito.Emisor}}</td>
                 <td>{{remito.Receptor}}</td>
                 <td>{{remito['Fecha de emision']}}</td>
-                <td>{{remito.estado}}</td>
+                <td>
+                    <span class="badge" [ngClass]="remito.claseEstado">
+                        {{remito.estado}}
+                    </span>
+                </td>
             </tr>
             @if (remitoSeleccionado() === (remito['Nro Remito'])) {
             <tr>
